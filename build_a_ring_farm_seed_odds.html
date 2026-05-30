@@ -1,5 +1,51 @@
-
-<h2 class="sr-only">Build a Ring Farm – complete seed roll odds and stats for all 50+ seeds across 10 rarity tiers</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Build a Ring Farm Seed Odds – ScriptB</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    :root {
+      --color-background-primary: #161b22;
+      --color-background-secondary: #21262d;
+      --color-border-primary: #58a6ff;
+      --color-border-secondary: #30363d;
+      --color-border-tertiary: #30363d;
+      --color-text-primary: #e6edf3;
+      --color-text-secondary: #8b949e;
+      --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace;
+    }
+    body {
+      font-family: var(--font-sans);
+      background: #0d1117;
+      color: var(--color-text-primary);
+      margin: 0;
+      padding: 2rem 1rem;
+    }
+    .page-wrap { max-width: 900px; margin: 0 auto; }
+    .back { display: inline-block; margin-bottom: 1.5rem; font-size: 13px; color: #8b949e; text-decoration: none; }
+    .back:hover { color: #58a6ff; }
+    h1 { font-size: 20px; font-weight: 600; margin-bottom: 1.5rem; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+    input[type=search] {
+      background: var(--color-background-primary);
+      border: 0.5px solid var(--color-border-secondary);
+      border-radius: 6px;
+      color: var(--color-text-primary);
+      padding: 6px 10px;
+      font-size: 13px;
+      outline: none;
+    }
+    input[type=search]:focus { border-color: var(--color-border-primary); }
+    footer { margin-top: 3rem; font-size: 12px; color: #484f58; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="page-wrap">
+    <a class="back" href="index.html">← Back to all tools</a>
+    <h1>Build a Ring Farm – Seed Odds</h1>
 
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -7,7 +53,7 @@ body{font-family:var(--font-sans)}
 .wrap{padding:1rem 0}
 .controls{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:1rem;align-items:center}
 .controls input{flex:1;min-width:120px;max-width:200px}
-.pill{display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border-radius:20px;border:0.5px solid var(--color-border-secondary);font-size:12px;cursor:pointer;background:var(--color-background-primary);color:var(--color-text-secondary);transition:background 0.15s}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border-radius:20px;border:0.5px solid var(--color-border-secondary);font-size:12px;cursor:pointer;background:var(--color-background-primary);color:var(--color-text-secondary)}
 .pill.active{background:var(--color-background-secondary);color:var(--color-text-primary);border-color:var(--color-border-primary);font-weight:500}
 .pill span{width:8px;height:8px;border-radius:50%;display:inline-block}
 table{width:100%;border-collapse:collapse;font-size:13px}
@@ -171,3 +217,8 @@ function render(){
 buildPills();
 render();
 </script>
+
+    <footer>Hosted on GitHub Pages · <a href="https://github.com/ScriptB/HTMLS" style="color:#484f58">Source</a></footer>
+  </div>
+</body>
+</html>
