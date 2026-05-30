@@ -1,0 +1,227 @@
+
+<style>
+  .card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; margin-bottom: 1rem; }
+  .metric { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.75rem 1rem; text-align: center; }
+  .metric-label { font-size: 12px; color: var(--color-text-secondary); margin: 0 0 4px; }
+  .metric-value { font-size: 20px; font-weight: 500; margin: 0; color: var(--color-text-primary); }
+  .sl-row { display: flex; align-items: center; gap: 12px; margin-bottom: 0.9rem; }
+  .sl-row label { font-size: 14px; color: var(--color-text-secondary); min-width: 150px; }
+  .sl-row input[type=range] { flex: 1; }
+  .sl-val { font-size: 14px; font-weight: 500; min-width: 60px; text-align: right; color: var(--color-text-primary); }
+  .sec-label { font-size: 12px; font-weight: 500; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.04em; margin: 0 0 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+  th { text-align: left; font-weight: 500; font-size: 12px; color: var(--color-text-secondary); padding: 6px 6px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  td { padding: 7px 6px; border-bottom: 0.5px solid var(--color-border-tertiary); color: var(--color-text-primary); word-break: break-word; }
+  tr:last-child td { border-bottom: none; }
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 500; }
+  .pg { background: #E1F5EE; color: #0F6E56; }
+  .pa { background: #FAEEDA; color: #854F0B; }
+  .pr { background: #FCEBEB; color: #A32D2D; }
+  .note { font-size: 12px; color: var(--color-text-secondary); margin: 8px 0 0; line-height: 1.5; }
+  @media (prefers-color-scheme: dark) {
+    .pg { background: #085041; color: #9FE1CB; }
+    .pa { background: #633806; color: #FAC775; }
+    .pr { background: #791F1F; color: #F7C1C1; }
+  }
+</style>
+
+<h2 class="sr-only">Compost Cosmic Spray probability calculator — Floor 3 Overgrown, 2 Utility + 1 Premium per use every 5 minutes</h2>
+
+<div style="padding: 1rem 0;">
+
+  <div class="card">
+    <p class="sec-label">Configuration</p>
+    <div class="sl-row">
+      <label>Floor</label>
+      <select id="sl-floor" style="flex:1; padding: 6px 8px; font-size:14px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary);">
+        <option value="2">Floor 2</option>
+        <option value="3" selected>Floor 3</option>
+      </select>
+      <span class="sl-val" style="min-width:60px;"></span>
+    </div>
+    <div class="sl-row">
+      <label>Tier</label>
+      <select id="sl-tier" style="flex:1; padding: 6px 8px; font-size:14px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary);">
+        <option value="Rich">Rich</option>
+        <option value="Prime">Prime</option>
+        <option value="Overgrown" selected>Overgrown</option>
+      </select>
+      <span class="sl-val" style="min-width:60px;"></span>
+    </div>
+    <div class="sl-row">
+      <label>Time frame</label>
+      <input type="range" id="sl-hours" min="1" max="168" value="24" step="1">
+      <span class="sl-val" id="out-hours">24h</span>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 1rem;">
+    <div class="metric">
+      <p class="metric-label">Uses in timeframe</p>
+      <p class="metric-value" id="stat-uses">—</p>
+    </div>
+    <div class="metric">
+      <p class="metric-label">Premium rolls</p>
+      <p class="metric-value" id="stat-premium">—</p>
+    </div>
+    <div class="metric">
+      <p class="metric-label">Cosmic chance/roll</p>
+      <p class="metric-value" id="stat-perroll">—</p>
+    </div>
+    <div class="metric">
+      <p class="metric-label">P(at least one)</p>
+      <p class="metric-value" id="stat-atleastone" style="color: #1D9E75;">—</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="sec-label">Probability table by timeframe</p>
+    <table>
+      <thead>
+        <tr>
+          <th style="width:22%">Timeframe</th>
+          <th style="width:16%">Uses</th>
+          <th style="width:20%">Premium rolls</th>
+          <th style="width:22%">P(Cosmic ≥1)</th>
+          <th style="width:20%">Expected</th>
+        </tr>
+      </thead>
+      <tbody id="tbl-body"></tbody>
+    </table>
+    <p class="note" id="cosmic-note"></p>
+  </div>
+
+  <div class="card">
+    <p class="sec-label">Premium pool odds breakdown</p>
+    <table id="pool-table">
+      <thead>
+        <tr>
+          <th style="width:40%">Item</th>
+          <th style="width:20%">Weight</th>
+          <th style="width:20%">Chance</th>
+          <th style="width:20%">Kind</th>
+        </tr>
+      </thead>
+      <tbody id="pool-body"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<script>
+const REWARDS = {
+  2: {
+    Rich:     { Utility: [{Item:"Super Fertilizer",W:40},{Item:"Void Spray",W:30},{Item:"Super Pet Treat",W:22},{Item:"Strong Fertilizer",W:8}], Premium: [{Item:"Radioactive Spray",W:4},{Item:"Super Fertilizer",W:50},{Item:"Void Spray",W:45},{Item:"Compost Hydra",W:1}] },
+    Prime:    { Utility: [{Item:"Super Fertilizer",W:28},{Item:"Void Spray",W:35},{Item:"Radioactive Spray",W:10},{Item:"Super Pet Treat",W:27}], Premium: [{Item:"Radioactive Spray",W:30},{Item:"Rainbow Spray",W:1},{Item:"Compost Hydra",W:13},{Item:"Super Fertilizer",W:56}] },
+    Overgrown:{ Utility: [{Item:"Radioactive Spray",W:10},{Item:"Super Fertilizer",W:38},{Item:"Void Spray",W:28},{Item:"Super Pet Treat",W:24}], Premium: [{Item:"Rainbow Spray",W:2},{Item:"Compost Hydra",W:27},{Item:"Radioactive Spray",W:68},{Item:"Garden Devourer",W:3}] }
+  },
+  3: {
+    Rich:     { Utility: [{Item:"Radioactive Spray",W:10},{Item:"Super Fertilizer",W:38},{Item:"Void Spray",W:28},{Item:"Super Pet Treat",W:24}], Premium: [{Item:"Rainbow Spray",W:18},{Item:"Compost Hydra",W:20},{Item:"Radioactive Spray",W:24},{Item:"Super Fertilizer",W:38}] },
+    Prime:    { Utility: [{Item:"Radioactive Spray",W:15},{Item:"Super Fertilizer",W:35},{Item:"Void Spray",W:27},{Item:"Super Pet Treat",W:23}], Premium: [{Item:"Rainbow Spray",W:20},{Item:"Compost Hydra",W:30},{Item:"Radioactive Spray",W:40},{Item:"Garden Devourer",W:10}] },
+    Overgrown:{ Utility: [{Item:"Radioactive Spray",W:25},{Item:"Super Fertilizer",W:33},{Item:"Super Pet Treat",W:27},{Item:"Rainbow Spray",W:15}], Premium: [{Item:"Rainbow Spray",W:35},{Item:"Compost Hydra",W:42},{Item:"Garden Devourer",W:18},{Item:"Cosmic Spray",W:5}] }
+  }
+};
+
+const TIMEFRAMES = [
+  {label:"1 hour", hours:1},
+  {label:"6 hours", hours:6},
+  {label:"12 hours", hours:12},
+  {label:"24 hours", hours:24},
+  {label:"2 days", hours:48},
+  {label:"3 days", hours:72},
+  {label:"1 week", hours:168}
+];
+
+function pill(pct) {
+  let cls = pct < 15 ? 'pr' : pct < 50 ? 'pa' : 'pg';
+  return `<span class="pill ${cls}">${pct.toFixed(2)}%</span>`;
+}
+
+function cosmicChance(floor, tier) {
+  const pool = REWARDS[floor] && REWARDS[floor][tier] ? REWARDS[floor][tier].Premium : [];
+  const total = pool.reduce((s,i) => s + (i.W||0), 0);
+  const cosmic = pool.find(i => i.Item === "Cosmic Spray");
+  return cosmic && total > 0 ? cosmic.W / total : 0;
+}
+
+function pAtLeastOne(p, n) {
+  if (n <= 0) return 0;
+  return 1 - Math.pow(1 - p, n);
+}
+
+function update() {
+  const floor = parseInt(document.getElementById('sl-floor').value);
+  const tier  = document.getElementById('sl-tier').value;
+  const hours = parseInt(document.getElementById('sl-hours').value);
+
+  document.getElementById('out-hours').textContent = hours < 24
+    ? hours + 'h'
+    : (hours % 24 === 0 ? (hours/24) + 'd' : hours + 'h');
+
+  const perRoll = cosmicChance(floor, tier);
+  const usesPerHour = 60 / 5;
+  const uses = Math.floor(hours * usesPerHour);
+  const premiumRolls = uses;
+
+  document.getElementById('stat-uses').textContent = uses.toLocaleString();
+  document.getElementById('stat-premium').textContent = premiumRolls.toLocaleString();
+  document.getElementById('stat-perroll').textContent = perRoll > 0 ? (perRoll * 100).toFixed(2) + '%' : 'N/A';
+
+  const pMain = pAtLeastOne(perRoll, premiumRolls) * 100;
+  const el = document.getElementById('stat-atleastone');
+  el.textContent = perRoll > 0 ? pMain.toFixed(2) + '%' : 'N/A';
+  el.style.color = pMain >= 50 ? '#1D9E75' : pMain >= 20 ? '#BA7517' : '#A32D2D';
+
+  const note = document.getElementById('cosmic-note');
+  if (perRoll === 0) {
+    note.textContent = 'Cosmic Spray does not appear in this floor/tier combination. Only available in Floor 3 Overgrown Premium.';
+  } else {
+    const avgUses = Math.ceil(1 / perRoll);
+    const avgHours = (avgUses * 5 / 60).toFixed(1);
+    note.textContent = `Average: 1 Cosmic Spray every ${avgUses} uses (~${avgHours} hours of continuous farming).`;
+  }
+
+  const tbody = document.getElementById('tbl-body');
+  tbody.innerHTML = '';
+  TIMEFRAMES.forEach(tf => {
+    const u = Math.floor(tf.hours * usesPerHour);
+    const pr = u;
+    const p = pAtLeastOne(perRoll, pr) * 100;
+    const exp = (perRoll * pr).toFixed(3);
+    const tr = document.createElement('tr');
+    const highlight = tf.hours === hours;
+    if (highlight) tr.style.background = 'var(--color-background-secondary)';
+    tr.innerHTML = `
+      <td style="font-weight:${highlight?500:400}">${tf.label}${highlight?' ◀':''}</td>
+      <td>${u.toLocaleString()}</td>
+      <td>${pr.toLocaleString()}</td>
+      <td>${perRoll > 0 ? pill(p) : '<span style="color:var(--color-text-secondary)">N/A</span>'}</td>
+      <td style="color:var(--color-text-secondary)">${perRoll > 0 ? exp : '—'}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  const pool = REWARDS[floor] && REWARDS[floor][tier] ? REWARDS[floor][tier].Premium : [];
+  const poolTotal = pool.reduce((s,i) => s + (i.W||0), 0);
+  const pbody = document.getElementById('pool-body');
+  pbody.innerHTML = '';
+  pool.forEach(item => {
+    const chance = poolTotal > 0 ? (item.W / poolTotal * 100) : 0;
+    const isCosmic = item.Item === 'Cosmic Spray';
+    const tr = document.createElement('tr');
+    if (isCosmic) tr.style.background = 'var(--color-background-secondary)';
+    tr.innerHTML = `
+      <td style="font-weight:${isCosmic?500:400}">${item.Item}${isCosmic?' ★':''}</td>
+      <td>${item.W}</td>
+      <td>${pill(chance)}</td>
+      <td style="color:var(--color-text-secondary)">Gear</td>
+    `;
+    pbody.appendChild(tr);
+  });
+}
+
+document.getElementById('sl-floor').addEventListener('change', update);
+document.getElementById('sl-tier').addEventListener('change', update);
+document.getElementById('sl-hours').addEventListener('input', update);
+update();
+</script>
