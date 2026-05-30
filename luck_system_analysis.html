@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Luck System Analysis</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-base:       #0d0f14;
+      --bg-surface:    #141720;
+      --bg-card:       #1a1e2a;
+      --bg-card-hover: #1f2535;
+      --border:        #2a2f3d;
+      --border-subtle: #1f2535;
+      --text-primary:  #e4e8f0;
+      --text-secondary:#9aa3b8;
+      --text-tertiary: #5a6175;
+      --accent-blue:   #4a8ef5;
+      --accent-green:  #3ecf8e;
+      --accent-purple: #9b7ff4;
+      --accent-amber:  #f5a623;
+      --radius:        10px;
+      --radius-sm:     6px;
+    }
+
+    html, body {
+      background: var(--bg-base);
+      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    .page-wrap {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 40px 24px 64px;
+    }
+
+    .page-header {
+      margin-bottom: 28px;
+    }
+    .page-header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.3px;
+    }
+    .page-header p {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-top: 5px;
+    }
+
+    /* ── Tabs ── */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      margin-bottom: 22px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0;
+    }
+    .tab {
+      padding: 8px 16px;
+      border: none;
+      border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      background: transparent;
+      color: var(--text-tertiary);
+      transition: color 0.15s, background 0.15s;
+      position: relative;
+      bottom: -1px;
+      border-bottom: 2px solid transparent;
+    }
+    .tab:hover { color: var(--text-secondary); }
+    .tab.active {
+      color: var(--accent-blue);
+      border-bottom: 2px solid var(--accent-blue);
+      background: transparent;
+    }
+
+    /* ── Panels ── */
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      margin-bottom: 12px;
+      transition: background 0.15s;
+    }
+    .card:hover { background: var(--bg-card-hover); }
+    .card h3 {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+      letter-spacing: 0.1px;
+    }
+    .card p, .card li {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.65;
+    }
+    .card ul {
+      padding-left: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .card code {
+      font-family: "SF Mono", "Fira Code", monospace;
+      font-size: 11.5px;
+      background: #0d1117;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 5px;
+      color: var(--accent-purple);
+    }
+
+    /* ── Badges ── */
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+    .tag-server  { background: #0d2a1e; color: #3ecf8e; border: 1px solid #1a4a32; }
+    .tag-client  { background: #0d1e3a; color: #4a8ef5; border: 1px solid #1a3060; }
+    .tag-both    { background: #1e1240; color: #9b7ff4; border: 1px solid #342060; }
+    .tag-warn    { background: #2a1e08; color: #f5a623; border: 1px solid #4a3212; }
+    .tag-sync    { background: #0d1e3a; color: #4a8ef5; border: 1px solid #1a3060; }
+    .tag-async   { background: #1e1240; color: #9b7ff4; border: 1px solid #342060; }
+    .tag-oneshot { background: #1a1e0d; color: #a8c44e; border: 1px solid #343a18; }
+
+    /* ── Flow diagram ── */
+    .flow-box {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      margin: 6px 0;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .flow-box.server  { border-color: #1a4a32; background: #0a1f16; }
+    .flow-box.remote  { border-color: #342060; background: #120d2a; }
+    .flow-box.client  { border-color: #1a3060; background: #0a1427; }
+    .flow-box.other   { border-color: var(--border); background: var(--bg-surface); }
+    .flow-box b       { color: var(--text-primary); }
+    .flow-arrow {
+      text-align: center;
+      font-size: 18px;
+      color: var(--text-tertiary);
+      margin: 2px 0;
+      user-select: none;
+    }
+
+    /* ── Function rows ── */
+    .fn-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 11px 0;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .fn-row:last-child { border-bottom: none; }
+    .fn-name {
+      font-weight: 600;
+      font-family: "SF Mono", "Fira Code", monospace;
+      font-size: 12px;
+      min-width: 210px;
+      color: var(--accent-blue);
+      flex-shrink: 0;
+    }
+    .fn-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.55;
+    }
+    .fn-desc .badge { margin-right: 6px; }
+
+    /* ── Signal rows ── */
+    .signal-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 11px 0;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .signal-row:last-child { border-bottom: none; }
+    .signal-name {
+      font-weight: 600;
+      font-family: "SF Mono", "Fira Code", monospace;
+      font-size: 12px;
+      min-width: 170px;
+      color: var(--accent-purple);
+      flex-shrink: 0;
+    }
+
+    /* ── Note box ── */
+    .note-box {
+      border-left: 3px solid var(--accent-amber);
+      background: #1e1608;
+      padding: 12px 16px;
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      margin: 14px 0;
+      font-size: 13px;
+      color: #c8a060;
+      line-height: 1.65;
+    }
+    .note-box b { color: #f0c070; }
+
+    /* ── Responsive ── */
+    @media (max-width: 540px) {
+      .fn-row, .signal-row { flex-direction: column; gap: 5px; }
+      .fn-name, .signal-name { min-width: unset; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-wrap">
+
+    <div class="page-header">
+      <h1>Luck System Analysis</h1>
+      <p>Client-side Luck module · SparkMod framework · <span class="badge tag-warn">critical · score 122</span></p>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="show('overview', this)">Overview</button>
+      <button class="tab" onclick="show('flow', this)">Client-Server Flow</button>
+      <button class="tab" onclick="show('functions', this)">Functions</button>
+      <button class="tab" onclick="show('signals', this)">Signals</button>
+      <button class="tab" onclick="show('players', this)">Player Impact</button>
+    </div>
+
+    <!-- OVERVIEW -->
+    <div id="overview" class="panel active">
+      <div class="card">
+        <h3>What is this module?</h3>
+        <p>This is the <b>client-side Luck module</b> for the SparkMod framework. It manages a "Luck" system — a multiplier or modifier that affects how good your drops and rewards are. The module is marked <span class="badge tag-warn">critical (score 122)</span> by the harvester, indicating it is frequently invoked during gameplay.</p>
+      </div>
+      <div class="card">
+        <h3>Architecture at a glance</h3>
+        <p>The system uses a <b>channel + modifier</b> model. Luck is broken into named <b>channels</b> (e.g. "egg", "spray", "plant") — each channel has its own luck value. Individual <b>modifiers</b> stack on top of channels from different sources (pets, gamepasses, events, etc.).</p>
+      </div>
+      <div class="card">
+        <h3>Key design facts</h3>
+        <ul>
+          <li>This file is <b>client-side only</b> — it mirrors server state but never writes to it</li>
+          <li>Default luck value is <b>1</b> (no bonus) when no channel value exists</li>
+          <li>Luck values are cached locally after the first server fetch</li>
+          <li>The server pushes live updates to clients via remote events</li>
+          <li>The <code>Init()</code> function short-circuits on the server — purely a client concern</li>
+          <li>No server-side Luck script was found in the archive — it lives elsewhere on the server</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- FLOW -->
+    <div id="flow" class="panel">
+      <div class="card">
+        <h3 style="margin-bottom:14px">How luck data moves between server and client</h3>
+
+        <div class="flow-box server">
+          <span class="badge tag-server">SERVER</span>&nbsp;
+          Luck service holds truth — computes effective luck per channel per player, applies modifiers (pets, gamepasses, events)
+        </div>
+        <div class="flow-arrow">↕</div>
+        <div class="flow-box remote">
+          <span class="badge tag-both">REMOTES (SparkMod.Luck.*)</span><br><br>
+          <b>InvokeServer</b> — GetEffective(channel), ListModifiers(channel), ListChannels()<br>
+          <b>OnClient</b> — ChannelChanged, ModifierApplied, ModifierRemoved
+        </div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-box client">
+          <span class="badge tag-client">CLIENT (this script)</span>&nbsp;
+          Caches values in local tables <code>t</code> (channels) and <code>t2</code> (modifiers). Updates UI signals when server pushes changes.
+        </div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-box other">
+          <span class="badge" style="background:#1a1e2a;color:#9aa3b8;border:1px solid #2a2f3d;">OTHER CLIENT MODULES</span>&nbsp;
+          Call <code>GetEffective(channel)</code> or <code>GetEffectiveAsync(channel)</code> to read current luck before rolling drops
+        </div>
+
+        <div class="note-box">
+          <b>Important:</b> The client cache is lazy — on first ask for a channel it hasn't seen, it invokes the server. Subsequent reads are instant from the local cache. The server proactively pushes changes so the cache stays fresh without polling.
+        </div>
+      </div>
+    </div>
+
+    <!-- FUNCTIONS -->
+    <div id="functions" class="panel">
+      <div class="card">
+        <h3 style="margin-bottom:12px">Exported functions</h3>
+        <div class="fn-row">
+          <div class="fn-name">GetEffective(_, channel)</div>
+          <div class="fn-desc"><span class="badge tag-sync">sync</span> Returns cached luck multiplier for a channel, or <b>1</b> if unknown. Fast — never yields. Used when a cached value is acceptable.</div>
+        </div>
+        <div class="fn-row">
+          <div class="fn-name">GetEffectiveAsync(_, channel)</div>
+          <div class="fn-desc"><span class="badge tag-async">async / yields</span> Waits for module to be Ready, then returns cached value. Falls back to <b>InvokeServer</b> if the channel hasn't been fetched yet. Caches result for future calls.</div>
+        </div>
+        <div class="fn-row">
+          <div class="fn-name">GetModifiers(_, channel?)</div>
+          <div class="fn-desc"><span class="badge tag-sync">sync</span> Returns list of modifier objects for a specific channel, or all modifiers across all channels if no argument. Each modifier has a <code>.channel</code> and <code>.source</code> field.</div>
+        </div>
+        <div class="fn-row">
+          <div class="fn-name">ListModifiersAsync(_, channel?)</div>
+          <div class="fn-desc"><span class="badge tag-async">async / yields</span> Fetches modifier list from server, merges into local cache, then returns them. Refreshes the <code>t2</code> table each call.</div>
+        </div>
+        <div class="fn-row">
+          <div class="fn-name">GetChannels(_)</div>
+          <div class="fn-desc"><span class="badge tag-sync">sync</span> Returns cached channel list (<code>v3</code>), or empty table if not fetched yet.</div>
+        </div>
+        <div class="fn-row">
+          <div class="fn-name">ListChannelsAsync(_)</div>
+          <div class="fn-desc"><span class="badge tag-async">async / yields</span> Returns cached channels if available; otherwise invokes server to get them. Result is cached permanently (channels don't change mid-session).</div>
+        </div>
+        <div class="fn-row">
+          <div class="fn-name">Init(_)</div>
+          <div class="fn-desc"><span class="badge tag-oneshot">one-shot</span> Initialises Remotes, registers all three OnClient listeners, fires the Ready signal. Runs only once (guarded by <code>v1</code>). <b>Server skips everything after Remotes:Init().</b></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIGNALS -->
+    <div id="signals" class="panel">
+      <div class="card">
+        <h3 style="margin-bottom:12px">Signal events — what other scripts can listen to</h3>
+        <div class="signal-row">
+          <div class="signal-name">Ready</div>
+          <div class="fn-desc">Fires once when the module has finished initialising. Async functions wait on this before proceeding. Other scripts can also wait on it.</div>
+        </div>
+        <div class="signal-row">
+          <div class="signal-name">ChannelChanged</div>
+          <div class="fn-desc">Fires when the server pushes a new luck value for a channel. Passes <code>(channelName, newValue)</code>. UI components listen to this to refresh luck displays.</div>
+        </div>
+        <div class="signal-row">
+          <div class="signal-name">ModifierApplied</div>
+          <div class="fn-desc">Fires when a new modifier is added to a channel (e.g. equipping a luck pet, joining an event). Passes the modifier object: <code>{channel, source, ...}</code>.</div>
+        </div>
+        <div class="signal-row">
+          <div class="signal-name">ModifierRemoved</div>
+          <div class="fn-desc">Fires when a modifier is removed (e.g. unequipping a pet, event ends). Passes <code>(channelName, sourceName)</code>. The modifier is cleared from the local cache.</div>
+        </div>
+      </div>
+      <div class="note-box">
+        These signals allow UI and other game systems to <b>reactively update</b> when luck changes — the luck bar on screen, indicator icons, or re-rolling display odds — without polling every frame.
+      </div>
+    </div>
+
+    <!-- PLAYERS -->
+    <div id="players" class="panel">
+      <div class="card">
+        <h3>What luck actually does for players</h3>
+        <p>Luck is a <b>per-channel multiplier</b>. Different drop systems query different channels — e.g. egg hatching might read the "egg" channel, gear shop restocking the "gear" channel. A value of <b>1 = no bonus</b>. A value of <b>2 = double luck</b>.</p>
+      </div>
+      <div class="card">
+        <h3>Sources of luck modifiers</h3>
+        <ul>
+          <li><b>Pets</b> — equipped pets add modifiers to specific channels by source name</li>
+          <li><b>Gamepasses</b> — permanent luck boost to one or more channels</li>
+          <li><b>Events</b> — temporary modifiers applied server-side during events like Plant Rush</li>
+          <li><b>Items / Gear</b> — possibly fertilizer or sprays that grant a temporary luck boost</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>What this means for drop rates</h3>
+        <p>Every probability calculated so far (eggs, Boss Box, Cosmic Spray etc.) assumes <b>luck = 1</b>. If the server applies a 2× luck modifier to the "gear" channel, Cosmic Spray's effective chance would double. The channel model means <b>egg luck and gear luck are independent</b> — a pet boosting egg luck doesn't help spray drops.</p>
+      </div>
+      <div class="card">
+        <h3>Why no server script is visible</h3>
+        <p>The archive only captured <b>ReplicatedStorage</b> scripts (client-accessible). The server-side Luck handler lives in <b>ServerScriptService</b> and was not harvested — that's where the actual multiplier computation and modifier management happens. This client module is purely a read-only mirror.</p>
+      </div>
+    </div>
+
+  </div><!-- /page-wrap -->
+
+  <script>
+    function show(id, btn) {
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      btn.classList.add('active');
+    }
+  </script>
+</body>
+</html>
