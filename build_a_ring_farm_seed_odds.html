@@ -1,0 +1,173 @@
+
+<h2 class="sr-only">Build a Ring Farm – complete seed roll odds and stats for all 50+ seeds across 10 rarity tiers</h2>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans)}
+.wrap{padding:1rem 0}
+.controls{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:1rem;align-items:center}
+.controls input{flex:1;min-width:120px;max-width:200px}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border-radius:20px;border:0.5px solid var(--color-border-secondary);font-size:12px;cursor:pointer;background:var(--color-background-primary);color:var(--color-text-secondary);transition:background 0.15s}
+.pill.active{background:var(--color-background-secondary);color:var(--color-text-primary);border-color:var(--color-border-primary);font-weight:500}
+.pill span{width:8px;height:8px;border-radius:50%;display:inline-block}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{text-align:left;padding:6px 10px;color:var(--color-text-secondary);font-weight:500;border-bottom:0.5px solid var(--color-border-tertiary);font-size:12px;white-space:nowrap}
+tbody tr{border-bottom:0.5px solid var(--color-border-tertiary)}
+tbody tr:hover{background:var(--color-background-secondary)}
+tbody td{padding:7px 10px;color:var(--color-text-primary);vertical-align:middle}
+.badge{display:inline-block;padding:2px 7px;border-radius:10px;font-size:11px;font-weight:500;white-space:nowrap}
+.name{font-weight:500;font-size:13px}
+.chance{font-size:12px;color:var(--color-text-secondary);font-family:var(--font-mono)}
+.src-tag{font-size:11px;padding:2px 6px;border-radius:6px;background:var(--color-background-secondary);color:var(--color-text-secondary);border:0.5px solid var(--color-border-tertiary)}
+.no-results{padding:2rem;text-align:center;color:var(--color-text-secondary);font-size:14px}
+.count{font-size:13px;color:var(--color-text-secondary);margin-bottom:8px}
+.scroll{overflow-x:auto}
+</style>
+
+<div class="wrap">
+<div class="controls">
+  <input type="search" id="q" placeholder="Search seeds..." oninput="render()">
+  <div id="pills" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+</div>
+<div class="count" id="count"></div>
+<div class="scroll">
+<table>
+  <thead>
+    <tr>
+      <th>Seed</th>
+      <th>Rarity</th>
+      <th>Roll chance</th>
+      <th>Base income</th>
+      <th>Grow time</th>
+      <th>Seed cost</th>
+      <th>Source</th>
+    </tr>
+  </thead>
+  <tbody id="tbody"></tbody>
+</table>
+</div>
+<div id="no" class="no-results" style="display:none">No seeds match. Try a different filter.</div>
+</div>
+
+<script>
+const TIERS=[
+  {name:'Common',   color:'#639922', bg:'#EAF3DE', dark_bg:'#27500A', dark_fg:'#C0DD97'},
+  {name:'Uncommon', color:'#0F6E56', bg:'#E1F5EE', dark_bg:'#085041', dark_fg:'#9FE1CB'},
+  {name:'Rare',     color:'#185FA5', bg:'#E6F1FB', dark_bg:'#0C447C', dark_fg:'#B5D4F4'},
+  {name:'Epic',     color:'#534AB7', bg:'#EEEDFE', dark_bg:'#3C3489', dark_fg:'#CECBF6'},
+  {name:'Legendary',color:'#BA7517', bg:'#FAEEDA', dark_bg:'#633806', dark_fg:'#FAC775'},
+  {name:'Secret',   color:'#D85A30', bg:'#FAECE7', dark_bg:'#712B13', dark_fg:'#F5C4B3'},
+  {name:'Prismatic',color:'#D4537E', bg:'#FBEAF0', dark_bg:'#72243E', dark_fg:'#F4C0D1'},
+  {name:'Divine',   color:'#888780', bg:'#F1EFE8', dark_bg:'#444441', dark_fg:'#D3D1C7'},
+  {name:'Exotic',   color:'#993C1D', bg:'#FAECE7', dark_bg:'#4A1B0C', dark_fg:'#F0997B'},
+  {name:'Transcended',color:'#A32D2D',bg:'#FCEBEB',dark_bg:'#501313', dark_fg:'#F7C1C1'},
+];
+const TIER_MAP={};
+TIERS.forEach(t=>TIER_MAP[t.name]=t);
+
+const SEEDS=[
+  {name:'Carrot',rarity:'Common',chance:'1 in 3',income:'$3',grow:'3s',cost:'$100',source:'Rolling'},
+  {name:'Beetroot',rarity:'Common',chance:'1 in 3',income:'$5',grow:'3.5s',cost:'$250',source:'Rolling'},
+  {name:'Pumpkin',rarity:'Common',chance:'1 in 4',income:'$8',grow:'4s',cost:'$500',source:'Rolling'},
+  {name:'Wheat',rarity:'Uncommon',chance:'1 in 32',income:'$12',grow:'5s',cost:'$600',source:'Rolling'},
+  {name:'Melon',rarity:'Uncommon',chance:'1 in 32',income:'$18',grow:'6s',cost:'$1.2K',source:'Rolling'},
+  {name:'Onion',rarity:'Uncommon',chance:'1 in 51',income:'$20',grow:'6s',cost:'$2.5K',source:'Rolling'},
+  {name:'Cantaloupe',rarity:'Uncommon',chance:'1 in 64',income:'$25',grow:'7s',cost:'$3.5K',source:'Rolling'},
+  {name:'Watermelon',rarity:'Uncommon',chance:'1 in 85',income:'$30',grow:'10s',cost:'$5K',source:'Rolling'},
+  {name:'Blueberry',rarity:'Rare',chance:'1 in 128',income:'$50',grow:'9s',cost:'$15K',source:'Rolling'},
+  {name:'Cabbage',rarity:'Rare',chance:'1 in 256',income:'$85',grow:'11s',cost:'$40K',source:'Rolling'},
+  {name:'Grape',rarity:'Rare',chance:'1 in 427',income:'$120',grow:'13s',cost:'$65K',source:'Rolling'},
+  {name:'Peach',rarity:'Rare',chance:'1 in 512',income:'$180',grow:'12s',cost:'$120K',source:'Rolling'},
+  {name:'Bamboo',rarity:'Rare',chance:'1 in 640',income:'$160',grow:'10s',cost:'$90K',source:'Rolling'},
+  {name:'Corn',rarity:'Epic',chance:'1 in 569',income:'$250',grow:'12s',cost:'$200K',source:'Rolling'},
+  {name:'Plum',rarity:'Epic',chance:'1 in 854',income:'$300',grow:'14s',cost:'$300K',source:'Rolling'},
+  {name:'Cauliflower',rarity:'Epic',chance:'1 in 1,281',income:'$400',grow:'17s',cost:'$500K',source:'Rolling'},
+  {name:'Nectarine',rarity:'Epic',chance:'1 in 1,423',income:'$480',grow:'16s',cost:'$600K',source:'Rolling'},
+  {name:'Sunflower',rarity:'Epic',chance:'1 in 1,423',income:'$550',grow:'14s',cost:'$650K',source:'Rolling'},
+  {name:'Citrus',rarity:'Epic',chance:'1 in 2,561',income:'$700',grow:'19s',cost:'$850K',source:'Rolling'},
+  {name:'Honeysuckle',rarity:'Epic',chance:'Unknown',income:'$500',grow:'14s',cost:'TBA',source:'Rolling'},
+  {name:'Twinflame Tulip',rarity:'Epic',chance:'Unknown',income:'$450',grow:'15s',cost:'TBA',source:'Rolling'},
+  {name:'Martian Melon',rarity:'Epic',chance:'Unknown',income:'$620',grow:'15s',cost:'TBA',source:'Rolling'},
+  {name:'Spring Onion',rarity:'Legendary',chance:'1 in 3,202',income:'$1.2K',grow:'25s',cost:'$2.5M',source:'Rolling'},
+  {name:'Mango',rarity:'Legendary',chance:'N/A',income:'$1.6K',grow:'23s',cost:'—',source:'Seed Collector'},
+  {name:'Mushroom',rarity:'Legendary',chance:'1 in 6,404',income:'$2K',grow:'30s',cost:'$7M',source:'Rolling'},
+  {name:'Banana',rarity:'Legendary',chance:'1 in 8,538',income:'$2.5K',grow:'27s',cost:'$9M',source:'Rolling'},
+  {name:'Amulet Anemone',rarity:'Legendary',chance:'Unknown',income:'$1.8K',grow:'26s',cost:'TBA',source:'Rolling'},
+  {name:'Strawberry',rarity:'Secret',chance:'1 in 12,807',income:'$6K',grow:'35s',cost:'$30M',source:'Rolling'},
+  {name:'Glowshroom',rarity:'Secret',chance:'5% per pack',income:'$8K',grow:'38s',cost:'$45M',source:'Seed Packs'},
+  {name:'Beanstalk',rarity:'Secret',chance:'1 in 25,614',income:'$9K',grow:'40s',cost:'$55M',source:'Rolling'},
+  {name:'Tomato',rarity:'Secret',chance:'1 in 51,229',income:'$12K',grow:'45s',cost:'$100M',source:'Rolling'},
+  {name:'Starfruit',rarity:'Secret',chance:'5% per pack',income:'$13K',grow:'42s',cost:'$130M',source:'Seed Packs'},
+  {name:'Apple',rarity:'Prismatic',chance:'1 in 128,072',income:'$20K',grow:'50s',cost:'$500M',source:'Rolling'},
+  {name:'Duoheart Daisy',rarity:'Prismatic',chance:'Unknown',income:'TBA',grow:'TBA',cost:'TBA',source:'Rolling'},
+  {name:'Cherry Blossom',rarity:'Prismatic',chance:'1 in 256,144',income:'$30K',grow:'55s',cost:'$1.5B',source:'Rolling'},
+  {name:'Blood Orange',rarity:'Prismatic',chance:'1 in 32,000,000',income:'$35K',grow:'50s',cost:'$1.2B',source:'Rolling'},
+  {name:'Pineapple',rarity:'Prismatic',chance:'25% per pack',income:'$40K',grow:'52s',cost:'$800M',source:'Seed Packs'},
+  {name:'Diamond Blossom',rarity:'Prismatic',chance:'Special Quests',income:'$55K',grow:'58s',cost:'$2.5B',source:'Seed Collector'},
+  {name:'Golden Apple',rarity:'Divine',chance:'1 in 426,907',income:'$65K',grow:'56s',cost:'$5B',source:'Rolling'},
+  {name:'Pomegranate',rarity:'Divine',chance:'15% per pack',income:'$75K',grow:'55s',cost:'$4B',source:'Seed Packs'},
+  {name:'Horned Melon',rarity:'Divine',chance:'TBA',income:'TBA',grow:'TBA',cost:'TBA',source:'TBA'},
+  {name:'Kiwi',rarity:'Exotic',chance:'9% per pack',income:'$90K',grow:'54s',cost:'TBA',source:'Seed Packs'},
+  {name:'Moonflower',rarity:'Exotic',chance:'1 in 731,840',income:'$110K',grow:'58s',cost:'TBA',source:'Rolling'},
+  {name:'Pepper',rarity:'Exotic',chance:'1 in 1,423,023',income:'$140K',grow:'60s',cost:'TBA',source:'Rolling'},
+  {name:'Void Fruit',rarity:'Exotic',chance:'1 in 25,614,414',income:'$180K',grow:'70s',cost:'TBA',source:'Rolling'},
+  {name:'Dragonfruit',rarity:'Exotic',chance:'1% per pack',income:'$350K',grow:'55s',cost:'$8B',source:'Seed Packs'},
+  {name:'Durian',rarity:'Transcended',chance:'1 in 511,803,100,901',income:'$380K',grow:'60s',cost:'$100T',source:'Rolling'},
+  {name:'Ghost Pepper',rarity:'Transcended',chance:'1 in 25,600,000,000,000',income:'$500K',grow:'55s',cost:'$275T',source:'Rolling'},
+  {name:'Soulbound Orchid',rarity:'Transcended',chance:'N/A',income:'$500K',grow:'68s',cost:'—',source:'Friendship Machine'},
+  {name:'Queen Blossom',rarity:'Transcended',chance:'N/A',income:'TBA',grow:'TBA',cost:'—',source:'Queen Bee Event'},
+  {name:"Trucker's Delight",rarity:'Transcended',chance:'N/A',income:'$160K',grow:'62s',cost:'—',source:'Trucker Event'},
+];
+
+const isDark=()=>matchMedia('(prefers-color-scheme: dark)').matches;
+
+function badgeHTML(rarity){
+  const t=TIER_MAP[rarity];
+  if(!t)return rarity;
+  const bg=isDark()?t.dark_bg:t.bg;
+  const fg=isDark()?t.dark_fg:t.color;
+  return `<span class="badge" style="background:${bg};color:${fg}">${rarity}</span>`;
+}
+
+let activeRarity='All';
+
+function buildPills(){
+  const c=document.getElementById('pills');
+  const rarities=['All',...TIERS.map(t=>t.name)];
+  c.innerHTML=rarities.map(r=>{
+    const t=TIER_MAP[r];
+    const dotStyle=t?(isDark()?`background:${t.dark_fg}`:`background:${t.color}`):'background:var(--color-text-secondary)';
+    return `<button class="pill${r===activeRarity?' active':''}" onclick="setRarity('${r}')">${t?`<span style="${dotStyle}"></span>`:''}${r}</button>`;
+  }).join('');
+}
+
+function setRarity(r){activeRarity=r;buildPills();render();}
+
+function render(){
+  const q=(document.getElementById('q').value||'').toLowerCase();
+  const filtered=SEEDS.filter(s=>{
+    const rarityOk=activeRarity==='All'||s.rarity===activeRarity;
+    const qOk=!q||s.name.toLowerCase().includes(q)||s.rarity.toLowerCase().includes(q)||s.source.toLowerCase().includes(q);
+    return rarityOk&&qOk;
+  });
+  document.getElementById('count').textContent=`Showing ${filtered.length} of ${SEEDS.length} seeds`;
+  const tbody=document.getElementById('tbody');
+  if(filtered.length===0){tbody.innerHTML='';document.getElementById('no').style.display='block';return;}
+  document.getElementById('no').style.display='none';
+  tbody.innerHTML=filtered.map(s=>{
+    const srcClass=s.source==='Rolling'?'':'src-tag';
+    return `<tr>
+      <td class="name">${s.name}</td>
+      <td>${badgeHTML(s.rarity)}</td>
+      <td class="chance">${s.chance}</td>
+      <td>${s.income}</td>
+      <td>${s.grow}</td>
+      <td>${s.cost}</td>
+      <td><span class="${srcClass}">${s.source}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+buildPills();
+render();
+</script>
