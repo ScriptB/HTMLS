@@ -1,3 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Compost Cosmic Spray Calculator – ScriptB</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    :root {
+      --color-background-primary: #161b22;
+      --color-background-secondary: #21262d;
+      --color-border-primary: #58a6ff;
+      --color-border-secondary: #30363d;
+      --color-border-tertiary: #30363d;
+      --color-text-primary: #e6edf3;
+      --color-text-secondary: #8b949e;
+      --color-back: #0d1117;
+      --color-backg: #0d1117;
+      --border-radius-lg: 10px;
+      --border-radius-md: 6px;
+      --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    }
+    body {
+      font-family: var(--font-sans);
+      background: #0d1117;
+      color: var(--color-text-primary);
+      margin: 0;
+      padding: 2rem 1rem;
+    }
+    .page-wrap { max-width: 700px; margin: 0 auto; }
+    .back { display: inline-block; margin-bottom: 1.5rem; font-size: 13px; color: #8b949e; text-decoration: none; }
+    .back:hover { color: #58a6ff; }
+    h1 { font-size: 20px; font-weight: 600; margin-bottom: 1.5rem; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+    select {
+      background: var(--color-background-primary);
+      color: var(--color-text-primary);
+      border: 0.5px solid var(--color-border-secondary);
+      border-radius: var(--border-radius-md);
+      padding: 6px 8px;
+      font-size: 14px;
+    }
+    footer { margin-top: 3rem; font-size: 12px; color: #484f58; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="page-wrap">
+    <a class="back" href="index.html">← Back to all tools</a>
+    <h1>Compost Cosmic Spray Calculator</h1>
 
 <style>
   .card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; margin-bottom: 1rem; }
@@ -14,15 +63,10 @@
   td { padding: 7px 6px; border-bottom: 0.5px solid var(--color-border-tertiary); color: var(--color-text-primary); word-break: break-word; }
   tr:last-child td { border-bottom: none; }
   .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 500; }
-  .pg { background: #E1F5EE; color: #0F6E56; }
-  .pa { background: #FAEEDA; color: #854F0B; }
-  .pr { background: #FCEBEB; color: #A32D2D; }
+  .pg { background: #085041; color: #9FE1CB; }
+  .pa { background: #633806; color: #FAC775; }
+  .pr { background: #791F1F; color: #F7C1C1; }
   .note { font-size: 12px; color: var(--color-text-secondary); margin: 8px 0 0; line-height: 1.5; }
-  @media (prefers-color-scheme: dark) {
-    .pg { background: #085041; color: #9FE1CB; }
-    .pa { background: #633806; color: #FAC775; }
-    .pr { background: #791F1F; color: #F7C1C1; }
-  }
 </style>
 
 <h2 class="sr-only">Compost Cosmic Spray probability calculator — Floor 3 Overgrown, 2 Utility + 1 Premium per use every 5 minutes</h2>
@@ -33,7 +77,7 @@
     <p class="sec-label">Configuration</p>
     <div class="sl-row">
       <label>Floor</label>
-      <select id="sl-floor" style="flex:1; padding: 6px 8px; font-size:14px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary);">
+      <select id="sl-floor" style="flex:1;">
         <option value="2">Floor 2</option>
         <option value="3" selected>Floor 3</option>
       </select>
@@ -41,7 +85,7 @@
     </div>
     <div class="sl-row">
       <label>Tier</label>
-      <select id="sl-tier" style="flex:1; padding: 6px 8px; font-size:14px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary);">
+      <select id="sl-tier" style="flex:1;">
         <option value="Rich">Rich</option>
         <option value="Prime">Prime</option>
         <option value="Overgrown" selected>Overgrown</option>
@@ -111,14 +155,14 @@
 <script>
 const REWARDS = {
   2: {
-    Rich:     { Utility: [{Item:"Super Fertilizer",W:40},{Item:"Void Spray",W:30},{Item:"Super Pet Treat",W:22},{Item:"Strong Fertilizer",W:8}], Premium: [{Item:"Radioactive Spray",W:4},{Item:"Super Fertilizer",W:50},{Item:"Void Spray",W:45},{Item:"Compost Hydra",W:1}] },
-    Prime:    { Utility: [{Item:"Super Fertilizer",W:28},{Item:"Void Spray",W:35},{Item:"Radioactive Spray",W:10},{Item:"Super Pet Treat",W:27}], Premium: [{Item:"Radioactive Spray",W:30},{Item:"Rainbow Spray",W:1},{Item:"Compost Hydra",W:13},{Item:"Super Fertilizer",W:56}] },
-    Overgrown:{ Utility: [{Item:"Radioactive Spray",W:10},{Item:"Super Fertilizer",W:38},{Item:"Void Spray",W:28},{Item:"Super Pet Treat",W:24}], Premium: [{Item:"Rainbow Spray",W:2},{Item:"Compost Hydra",W:27},{Item:"Radioactive Spray",W:68},{Item:"Garden Devourer",W:3}] }
+    Rich:     { Utility: [{Item:"Super Fertilizer",W:40},{Item:"Void Spray",W:30},{Item:"Super Pet Treat",W:22},{Item:"Strong Fertilizer",W:8}], Premium: [{Item:"Radioactive Spray",W:4},{Item:"Super Fertilizer",W:30},{Item:"Void Spray",W:40},{Item:"Super Pet Treat",W:26}] },
+    Prime:    { Utility: [{Item:"Super Fertilizer",W:28},{Item:"Void Spray",W:35},{Item:"Radioactive Spray",W:10},{Item:"Super Pet Treat",W:27}], Premium: [{Item:"Radioactive Spray",W:30},{Item:"Void Spray",W:35},{Item:"Super Pet Treat",W:25},{Item:"Rainbow Spray",W:10}] },
+    Overgrown:{ Utility: [{Item:"Radioactive Spray",W:10},{Item:"Super Fertilizer",W:38},{Item:"Void Spray",W:28},{Item:"Super Pet Treat",W:24}], Premium: [{Item:"Rainbow Spray",W:2},{Item:"Compost Cosmic Spray",W:5},{Item:"Radioactive Spray",W:35},{Item:"Void Spray",W:30},{Item:"Super Pet Treat",W:28}] }
   },
   3: {
-    Rich:     { Utility: [{Item:"Radioactive Spray",W:10},{Item:"Super Fertilizer",W:38},{Item:"Void Spray",W:28},{Item:"Super Pet Treat",W:24}], Premium: [{Item:"Rainbow Spray",W:18},{Item:"Compost Hydra",W:20},{Item:"Radioactive Spray",W:24},{Item:"Super Fertilizer",W:38}] },
-    Prime:    { Utility: [{Item:"Radioactive Spray",W:15},{Item:"Super Fertilizer",W:35},{Item:"Void Spray",W:27},{Item:"Super Pet Treat",W:23}], Premium: [{Item:"Rainbow Spray",W:20},{Item:"Compost Hydra",W:30},{Item:"Radioactive Spray",W:40},{Item:"Garden Devourer",W:10}] },
-    Overgrown:{ Utility: [{Item:"Radioactive Spray",W:25},{Item:"Super Fertilizer",W:33},{Item:"Super Pet Treat",W:27},{Item:"Rainbow Spray",W:15}], Premium: [{Item:"Rainbow Spray",W:35},{Item:"Compost Hydra",W:42},{Item:"Garden Devourer",W:18},{Item:"Cosmic Spray",W:5}] }
+    Rich:     { Utility: [{Item:"Radioactive Spray",W:10},{Item:"Super Fertilizer",W:38},{Item:"Void Spray",W:28},{Item:"Super Pet Treat",W:24}], Premium: [{Item:"Rainbow Spray",W:18},{Item:"Compost Cosmic Spray",W:2},{Item:"Radioactive Spray",W:30},{Item:"Void Spray",W:28},{Item:"Super Pet Treat",W:22}] },
+    Prime:    { Utility: [{Item:"Radioactive Spray",W:15},{Item:"Super Fertilizer",W:35},{Item:"Void Spray",W:27},{Item:"Super Pet Treat",W:23}], Premium: [{Item:"Rainbow Spray",W:20},{Item:"Compost Cosmic Spray",W:5},{Item:"Radioactive Spray",W:28},{Item:"Void Spray",W:27},{Item:"Super Pet Treat",W:20}] },
+    Overgrown:{ Utility: [{Item:"Radioactive Spray",W:25},{Item:"Super Fertilizer",W:33},{Item:"Super Pet Treat",W:27},{Item:"Rainbow Spray",W:15}], Premium: [{Item:"Rainbow Spray",W:35},{Item:"Cosmic Spray",W:5},{Item:"Radioactive Spray",W:25},{Item:"Super Pet Treat",W:20},{Item:"Void Spray",W:15}] }
   }
 };
 
@@ -192,7 +236,7 @@ function update() {
     const highlight = tf.hours === hours;
     if (highlight) tr.style.background = 'var(--color-background-secondary)';
     tr.innerHTML = `
-      <td style="font-weight:${highlight?500:400}">${tf.label}${highlight?' ◀':''}</td>
+      <td style="font-weight:${highlight?500:400}">${tf.label}${highlight?' ◄':''}</td>
       <td>${u.toLocaleString()}</td>
       <td>${pr.toLocaleString()}</td>
       <td>${perRoll > 0 ? pill(p) : '<span style="color:var(--color-text-secondary)">N/A</span>'}</td>
@@ -225,3 +269,8 @@ document.getElementById('sl-tier').addEventListener('change', update);
 document.getElementById('sl-hours').addEventListener('input', update);
 update();
 </script>
+
+    <footer>Hosted on GitHub Pages · <a href="https://github.com/ScriptB/HTMLS" style="color:#484f58">Source</a></footer>
+  </div>
+</body>
+</html>
