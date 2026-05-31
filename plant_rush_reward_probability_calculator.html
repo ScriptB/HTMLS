@@ -23,12 +23,42 @@
       margin: 0;
       padding: 2rem 1rem;
     }
-    .page-wrap { max-width: 700px; margin: 0 auto; }
+    .page-wrap { max-width: 720px; margin: 0 auto; }
     .back { display: inline-block; margin-bottom: 1.5rem; font-size: 13px; color: #8b949e; text-decoration: none; }
     .back:hover { color: #58a6ff; }
     h1 { font-size: 20px; font-weight: 600; margin-bottom: 1.5rem; }
-    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
     footer { margin-top: 3rem; font-size: 12px; color: #484f58; text-align: center; }
+
+    .card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; margin-bottom: 1rem; }
+    .metric { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.75rem 1rem; text-align: center; }
+    .metric-label { font-size: 12px; color: var(--color-text-secondary); margin: 0 0 4px; }
+    .metric-sub   { font-size: 11px; color: var(--color-text-secondary); margin: 0 0 4px; }
+    .metric-value { font-size: 22px; font-weight: 500; margin: 0; color: var(--color-text-primary); }
+    .metric-value.highlight { color: #1D9E75; }
+    .metric-value.warn      { color: #BA7517; }
+
+    .section-label { font-size: 13px; font-weight: 500; color: var(--color-text-secondary); margin: 0 0 10px; text-transform: uppercase; letter-spacing: 0.04em; }
+    .section-note  { font-size: 12px; color: var(--color-text-secondary); margin: -6px 0 10px; }
+
+    .slider-row { display: flex; align-items: center; gap: 12px; margin-bottom: 1rem; }
+    .slider-row:last-child { margin-bottom: 0; }
+    .slider-row label { font-size: 14px; color: var(--color-text-secondary); min-width: 150px; }
+    .slider-row input[type=range] { flex: 1; }
+    .slider-val { font-size: 14px; font-weight: 500; min-width: 56px; text-align: right; color: var(--color-text-primary); }
+
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { text-align: left; font-weight: 500; font-size: 12px; color: var(--color-text-secondary); padding: 6px 8px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+    td { padding: 8px 8px; border-bottom: 0.5px solid var(--color-border-tertiary); color: var(--color-text-primary); }
+    tr:last-child td { border-bottom: none; }
+    .summary-row td { background: var(--color-background-secondary); font-weight: 600; }
+
+    .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 500; }
+    .pill-green { background: #085041; color: #9FE1CB; }
+    .pill-amber { background: #633806; color: #FAC775; }
+    .pill-red   { background: #791F1F; color: #F7C1C1; }
+    .muted { color: var(--color-text-secondary); font-style: italic; }
+
+    .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 1rem; }
   </style>
 </head>
 <body>
@@ -36,209 +66,300 @@
     <a class="back" href="index.html">← Back to all tools</a>
     <h1>Plant Rush Reward Calculator</h1>
 
-<style>
-  .card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; }
-  .metric { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.75rem 1rem; text-align: center; }
-  .metric-label { font-size: 12px; color: var(--color-text-secondary); margin: 0 0 4px; }
-  .metric-value { font-size: 22px; font-weight: 500; margin: 0; color: var(--color-text-primary); }
-  .metric-value.highlight { color: #1D9E75; }
-  .metric-value.warn { color: #BA7517; }
-  .section-label { font-size: 13px; font-weight: 500; color: var(--color-text-secondary); margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.04em; }
-  .slider-row { display: flex; align-items: center; gap: 12px; margin-bottom: 1rem; }
-  .slider-row label { font-size: 14px; color: var(--color-text-secondary); min-width: 130px; }
-  .slider-row input[type=range] { flex: 1; }
-  .slider-val { font-size: 14px; font-weight: 500; min-width: 48px; text-align: right; color: var(--color-text-primary); }
-  table { width: 100%; border-collapse: collapse; font-size: 14px; }
-  th { text-align: left; font-weight: 500; font-size: 12px; color: var(--color-text-secondary); padding: 6px 8px; border-bottom: 0.5px solid var(--color-border-tertiary); }
-  td { padding: 8px 8px; border-bottom: 0.5px solid var(--color-border-tertiary); color: var(--color-text-primary); }
-  tr:last-child td { border-bottom: none; }
-  .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 500; }
-  .pill-green { background: #085041; color: #9FE1CB; }
-  .pill-amber { background: #633806; color: #FAC775; }
-  .pill-red { background: #791F1F; color: #F7C1C1; }
-  .divider { border: none; border-top: 0.5px solid var(--color-border-tertiary); margin: 1.25rem 0; }
-</style>
+    <div style="padding-bottom: 1rem;">
 
-<div style="padding: 1rem 0;">
+      <!-- ── SETTINGS ── -->
+      <div class="card">
+        <p class="section-label">Fight settings</p>
 
-  <div class="card" style="margin-bottom: 1rem;">
-    <p class="section-label">Fight settings</p>
+        <div class="slider-row">
+          <label for="sl-duration">Fight duration</label>
+          <input type="range" id="sl-duration" min="1" max="20" value="5" step="1">
+          <span class="slider-val" id="out-duration">5 min</span>
+        </div>
 
-    <div class="slider-row">
-      <label>Fight duration</label>
-      <input type="range" id="sl-duration" min="1" max="20" value="5" step="1">
-      <span class="slider-val" id="out-duration">5 min</span>
-    </div>
-
-    <div class="slider-row">
-      <label>Boss boxes purchased</label>
-      <input type="range" id="sl-boxes" min="0" max="30" value="0" step="1">
-      <span class="slider-val" id="out-boxes">0</span>
-    </div>
-
-    <div class="slider-row">
-      <label>Players in session</label>
-      <input type="range" id="sl-players" min="1" max="20" value="4" step="1">
-      <span class="slider-val" id="out-players">4</span>
-    </div>
-  </div>
-
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 1rem;">
-    <div class="metric">
-      <p class="metric-label">Compost ball rolls</p>
-      <p class="metric-value" id="stat-compost">—</p>
-    </div>
-    <div class="metric">
-      <p class="metric-label">Death drop rolls</p>
-      <p class="metric-value">6</p>
-    </div>
-    <div class="metric">
-      <p class="metric-label">Boss box rolls</p>
-      <p class="metric-value" id="stat-boxrolls">—</p>
-    </div>
-    <div class="metric">
-      <p class="metric-label">Total rolls</p>
-      <p class="metric-value highlight" id="stat-total">—</p>
-    </div>
-  </div>
-
-  <div class="card" style="margin-bottom: 1rem;">
-    <p class="section-label">Probability breakdown</p>
-    <table>
-      <thead>
-        <tr>
-          <th>Item</th>
-          <th>Source</th>
-          <th>Per-roll chance</th>
-          <th>P(at least one)</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Cosmic Spray</td>
-          <td>FreeBoss drops</td>
-          <td>1.5075%</td>
-          <td id="p-cosmic-free">—</td>
-        </tr>
-        <tr>
-          <td>Garden Golem Seed</td>
-          <td>FreeBoss drops</td>
-          <td>0.5025%</td>
-          <td id="p-golem-free">—</td>
-        </tr>
-        <tr>
-          <td>Cosmic Spray</td>
-          <td>Boss box</td>
-          <td>5.0000%</td>
-          <td id="p-cosmic-box">—</td>
-        </tr>
-        <tr>
-          <td>Garden Golem Seed</td>
-          <td>Boss box</td>
-          <td>0.5000%</td>
-          <td id="p-golem-box">—</td>
-        </tr>
-        <tr style="background: var(--color-background-secondary);">
-          <td><strong>Cosmic or Golem</strong></td>
-          <td>All sources combined</td>
-          <td>—</td>
-          <td id="p-any"><strong>—</strong></td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="card">
-    <p class="section-label">Token cost estimate</p>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">
-      <div class="metric">
-        <p class="metric-label">Tokens for boxes</p>
-        <p class="metric-value warn" id="stat-tokencost">—</p>
+        <div class="slider-row">
+          <label for="sl-boxes">Boss boxes purchased</label>
+          <input type="range" id="sl-boxes" min="0" max="30" value="0" step="1">
+          <span class="slider-val" id="out-boxes">0</span>
+        </div>
       </div>
-      <div class="metric">
-        <p class="metric-label">Large bundles needed</p>
-        <p class="metric-label" style="font-size:11px;">(45,000 tokens / 1,999 Robux each)</p>
-        <p class="metric-value warn" id="stat-bundles">—</p>
+
+      <!-- ── ROLL SUMMARY ── -->
+      <div class="metrics-grid">
+        <div class="metric">
+          <p class="metric-label">Compost ball rolls</p>
+          <p class="metric-value" id="stat-compost">—</p>
+        </div>
+        <div class="metric">
+          <p class="metric-label">Death drop rolls</p>
+          <p class="metric-value">6</p>
+        </div>
+        <div class="metric">
+          <p class="metric-label">Free boss rolls</p>
+          <p class="metric-value highlight" id="stat-freerolls">—</p>
+        </div>
+        <div class="metric">
+          <p class="metric-label">Boss box rolls</p>
+          <p class="metric-value" id="stat-boxrolls">—</p>
+        </div>
       </div>
-    </div>
-  </div>
 
-</div>
+      <!-- ── FREE BOSS DROPS ── -->
+      <div class="card">
+        <p class="section-label">Free boss drops</p>
+        <p class="section-note">Rewards from compost balls &amp; death drops. You get these automatically.</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Per-roll chance</th>
+              <th>P(at least one)</th>
+              <th>Expected drops</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Cosmic Spray</td>
+              <td>1.5075%</td>
+              <td id="p-cosmic-free">—</td>
+              <td id="e-cosmic-free">—</td>
+            </tr>
+            <tr>
+              <td>Garden Golem Seed</td>
+              <td>0.5025%</td>
+              <td id="p-golem-free">—</td>
+              <td id="e-golem-free">—</td>
+            </tr>
+            <tr class="summary-row">
+              <td>Cosmic <em>or</em> Golem</td>
+              <td>2.0100%</td>
+              <td id="p-any-free">—</td>
+              <td id="e-any-free">—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-<script>
-  const FREE_COSMIC = 1.5 / 99.5;
-  const FREE_GOLEM  = 0.5 / 99.5;
-  const FREE_EITHER = 2.0 / 99.5;
-  const BOX_COSMIC  = 5.0 / 100;
-  const BOX_GOLEM   = 0.5 / 100;
-  const BOX_EITHER  = 5.5 / 100;
-  const COMPOST_INTERVAL = 18;
-  const DEATH_DROPS = 6;
-  const BOX_COST = 2500;
-  const LARGE_BUNDLE = 45000;
+      <!-- ── BOSS BOX DROPS ── -->
+      <div class="card">
+        <p class="section-label">Boss box drops</p>
+        <p class="section-note">Rewards from purchased boss boxes (2,500 tokens each).</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Per-roll chance</th>
+              <th>P(at least one)</th>
+              <th>Expected drops</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Cosmic Spray</td>
+              <td>5.0000%</td>
+              <td id="p-cosmic-box">—</td>
+              <td id="e-cosmic-box">—</td>
+            </tr>
+            <tr>
+              <td>Garden Golem Seed</td>
+              <td>0.5000%</td>
+              <td id="p-golem-box">—</td>
+              <td id="e-golem-box">—</td>
+            </tr>
+            <tr class="summary-row">
+              <td>Cosmic <em>or</em> Golem</td>
+              <td>5.5000%</td>
+              <td id="p-any-box">—</td>
+              <td id="e-any-box">—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-  function pAtLeastOne(perRoll, rolls) {
-    if (rolls <= 0) return 0;
-    return 1 - Math.pow(1 - perRoll, rolls);
-  }
+      <!-- ── COMBINED SUMMARY ── -->
+      <div class="card">
+        <p class="section-label">Combined result (all sources)</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>P(at least one)</th>
+              <th>Expected drops total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Cosmic Spray</td>
+              <td id="p-cosmic-combined">—</td>
+              <td id="e-cosmic-combined">—</td>
+            </tr>
+            <tr>
+              <td>Garden Golem Seed</td>
+              <td id="p-golem-combined">—</td>
+              <td id="e-golem-combined">—</td>
+            </tr>
+            <tr class="summary-row">
+              <td>Cosmic <em>or</em> Golem</td>
+              <td id="p-any-combined">—</td>
+              <td id="e-any-combined">—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-  function pct(v) { return (v * 100).toFixed(2) + '%'; }
+      <!-- ── TOKEN COST ── -->
+      <div class="card">
+        <p class="section-label">Token cost estimate</p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px;">
+          <div class="metric">
+            <p class="metric-label">Tokens for boxes</p>
+            <p class="metric-value warn" id="stat-tokencost">—</p>
+          </div>
+          <div class="metric">
+            <p class="metric-label">Large bundles needed</p>
+            <p class="metric-sub">(45,000 tokens / 1,999 Robux each)</p>
+            <p class="metric-value warn" id="stat-bundles">—</p>
+          </div>
+          <div class="metric">
+            <p class="metric-label">Approx. Robux cost</p>
+            <p class="metric-value warn" id="stat-robux">—</p>
+          </div>
+        </div>
+      </div>
 
-  function pill(v) {
-    const p = v * 100;
-    let cls = p < 15 ? 'pill-red' : p < 40 ? 'pill-amber' : 'pill-green';
-    return `<span class="pill ${cls}">${pct(v)}</span>`;
-  }
-
-  function update() {
-    const minutes = +document.getElementById('sl-duration').value;
-    const boxes   = +document.getElementById('sl-boxes').value;
-
-    document.getElementById('out-duration').textContent = minutes + ' min';
-    document.getElementById('out-boxes').textContent = boxes;
-    document.getElementById('out-players').textContent = document.getElementById('sl-players').value;
-
-    const compostRolls = Math.floor((minutes * 60) / COMPOST_INTERVAL);
-    const freeRolls    = compostRolls + DEATH_DROPS;
-    const totalRolls   = freeRolls + boxes;
-
-    document.getElementById('stat-compost').textContent  = compostRolls;
-    document.getElementById('stat-boxrolls').textContent = boxes;
-    document.getElementById('stat-total').textContent    = totalRolls;
-
-    const pCosmicFree = pAtLeastOne(FREE_COSMIC, freeRolls);
-    const pGolemFree  = pAtLeastOne(FREE_GOLEM,  freeRolls);
-    const pCosmicBox  = pAtLeastOne(BOX_COSMIC,  boxes);
-    const pGolemBox   = pAtLeastOne(BOX_GOLEM,   boxes);
-
-    const pNoneCosmicFree = 1 - pCosmicFree;
-    const pNoneGolemFree  = 1 - pGolemFree;
-    const pNoneCosmicBox  = boxes > 0 ? 1 - pCosmicBox : 1;
-    const pNoneGolemBox   = boxes > 0 ? 1 - pGolemBox  : 1;
-
-    const pNeitherAnywhere = pNoneCosmicFree * pNoneGolemFree * pNoneCosmicBox * pNoneGolemBox;
-    const pAny = 1 - pNeitherAnywhere;
-
-    document.getElementById('p-cosmic-free').innerHTML = pill(pCosmicFree);
-    document.getElementById('p-golem-free').innerHTML  = pill(pGolemFree);
-    document.getElementById('p-cosmic-box').innerHTML  = boxes > 0 ? pill(pCosmicBox) : '<span style="color:var(--color-text-secondary)">no boxes</span>';
-    document.getElementById('p-golem-box').innerHTML   = boxes > 0 ? pill(pGolemBox)  : '<span style="color:var(--color-text-secondary)">no boxes</span>';
-    document.getElementById('p-any').innerHTML = '<strong>' + pill(pAny) + '</strong>';
-
-    const tokenCost = boxes * BOX_COST;
-    const bundlesNeeded = tokenCost > 0 ? Math.ceil(tokenCost / LARGE_BUNDLE) : 0;
-    document.getElementById('stat-tokencost').textContent = tokenCost.toLocaleString();
-    document.getElementById('stat-bundles').textContent   = bundlesNeeded;
-  }
-
-  ['sl-duration','sl-boxes','sl-players'].forEach(id => {
-    document.getElementById(id).addEventListener('input', update);
-  });
-
-  update();
-</script>
+    </div><!-- /padding wrapper -->
 
     <footer>Hosted on GitHub Pages · <a href="https://github.com/ScriptB/HTMLS" style="color:#484f58">Source</a></footer>
   </div>
+
+  <script>
+    // ── Constants ──────────────────────────────────────────────────
+    const FREE_COSMIC      = 1.5 / 99.5;   // ~1.5075%
+    const FREE_GOLEM       = 0.5 / 99.5;   // ~0.5025%
+    const FREE_EITHER      = 2.0 / 99.5;   // ~2.0100%
+    const BOX_COSMIC       = 5.0 / 100;    // 5.0000%
+    const BOX_GOLEM        = 0.5 / 100;    // 0.5000%
+    const BOX_EITHER       = 5.5 / 100;    // 5.5000%
+    const COMPOST_INTERVAL = 18;            // seconds per compost ball
+    const DEATH_DROPS      = 6;            // fixed rolls on boss death
+    const BOX_COST         = 2500;         // tokens per boss box
+    const LARGE_BUNDLE     = 45000;        // tokens per large bundle
+    const BUNDLE_ROBUX     = 1999;         // Robux per large bundle
+
+    // ── Helpers ────────────────────────────────────────────────────
+    // Probability of getting at least one success in `rolls` independent trials
+    function pAtLeastOne(perRoll, rolls) {
+      if (rolls <= 0) return 0;
+      return 1 - Math.pow(1 - perRoll, rolls);
+    }
+
+    // Expected number of successes (simple binomial mean)
+    function expected(perRoll, rolls) {
+      return perRoll * rolls;
+    }
+
+    function pct(v)  { return (v * 100).toFixed(2) + '%'; }
+    function exp(v)  { return v < 0.001 ? '<0.001' : v.toFixed(3); }
+
+    function pill(v) {
+      const p = v * 100;
+      const cls = p < 15 ? 'pill-red' : p < 40 ? 'pill-amber' : 'pill-green';
+      return `<span class="pill ${cls}">${pct(v)}</span>`;
+    }
+
+    function noBoxes() {
+      return '<span class="muted">no boxes</span>';
+    }
+
+    // ── Main update ────────────────────────────────────────────────
+    function update() {
+      const minutes = +document.getElementById('sl-duration').value;
+      const boxes   = +document.getElementById('sl-boxes').value;
+
+      document.getElementById('out-duration').textContent = minutes + ' min';
+      document.getElementById('out-boxes').textContent    = boxes;
+
+      // Roll counts
+      const compostRolls = Math.floor((minutes * 60) / COMPOST_INTERVAL);
+      const freeRolls    = compostRolls + DEATH_DROPS;
+
+      document.getElementById('stat-compost').textContent  = compostRolls;
+      document.getElementById('stat-freerolls').textContent = freeRolls;
+      document.getElementById('stat-boxrolls').textContent = boxes;
+
+      // ── Free boss drop probabilities ──
+      const pCosmicFree = pAtLeastOne(FREE_COSMIC, freeRolls);
+      const pGolemFree  = pAtLeastOne(FREE_GOLEM,  freeRolls);
+      const pEitherFree = pAtLeastOne(FREE_EITHER, freeRolls);
+
+      const eCosmicFree = expected(FREE_COSMIC, freeRolls);
+      const eGolemFree  = expected(FREE_GOLEM,  freeRolls);
+      const eEitherFree = expected(FREE_EITHER, freeRolls);
+
+      document.getElementById('p-cosmic-free').innerHTML = pill(pCosmicFree);
+      document.getElementById('p-golem-free').innerHTML  = pill(pGolemFree);
+      document.getElementById('p-any-free').innerHTML    = pill(pEitherFree);
+      document.getElementById('e-cosmic-free').textContent = exp(eCosmicFree);
+      document.getElementById('e-golem-free').textContent  = exp(eGolemFree);
+      document.getElementById('e-any-free').textContent    = exp(eEitherFree);
+
+      // ── Boss box probabilities ──
+      const pCosmicBox = boxes > 0 ? pAtLeastOne(BOX_COSMIC,  boxes) : 0;
+      const pGolemBox  = boxes > 0 ? pAtLeastOne(BOX_GOLEM,   boxes) : 0;
+      const pEitherBox = boxes > 0 ? pAtLeastOne(BOX_EITHER,  boxes) : 0;
+
+      const eCosmicBox = expected(BOX_COSMIC, boxes);
+      const eGolemBox  = expected(BOX_GOLEM,  boxes);
+      const eEitherBox = expected(BOX_EITHER, boxes);
+
+      document.getElementById('p-cosmic-box').innerHTML = boxes > 0 ? pill(pCosmicBox) : noBoxes();
+      document.getElementById('p-golem-box').innerHTML  = boxes > 0 ? pill(pGolemBox)  : noBoxes();
+      document.getElementById('p-any-box').innerHTML    = boxes > 0 ? pill(pEitherBox) : noBoxes();
+      document.getElementById('e-cosmic-box').innerHTML = boxes > 0 ? exp(eCosmicBox) : noBoxes();
+      document.getElementById('e-golem-box').innerHTML  = boxes > 0 ? exp(eGolemBox)  : noBoxes();
+      document.getElementById('e-any-box').innerHTML    = boxes > 0 ? exp(eEitherBox) : noBoxes();
+
+      // ── Combined: P(at least one across both sources) ──
+      // Use independence: P(none from either) = P(none free) * P(none box)
+      const pNoneCosmicFree = 1 - pCosmicFree;
+      const pNoneGolemFree  = 1 - pGolemFree;
+      const pNoneCosmicBox  = boxes > 0 ? 1 - pCosmicBox : 1;
+      const pNoneGolemBox   = boxes > 0 ? 1 - pGolemBox  : 1;
+
+      const pCosmicCombined = 1 - (pNoneCosmicFree * pNoneCosmicBox);
+      const pGolemCombined  = 1 - (pNoneGolemFree  * pNoneGolemBox);
+      // P(neither cosmic nor golem anywhere)
+      const pNoneAnywhere   = pNoneCosmicFree * pNoneGolemFree * pNoneCosmicBox * pNoneGolemBox;
+      const pAnyCombined    = 1 - pNoneAnywhere;
+
+      // Expected totals are simply additive
+      const eCosmicCombined = eCosmicFree + eCosmicBox;
+      const eGolemCombined  = eGolemFree  + eGolemBox;
+      const eAnyCombined    = eEitherFree + eEitherBox;
+
+      document.getElementById('p-cosmic-combined').innerHTML = pill(pCosmicCombined);
+      document.getElementById('p-golem-combined').innerHTML  = pill(pGolemCombined);
+      document.getElementById('p-any-combined').innerHTML    = pill(pAnyCombined);
+      document.getElementById('e-cosmic-combined').textContent = exp(eCosmicCombined);
+      document.getElementById('e-golem-combined').textContent  = exp(eGolemCombined);
+      document.getElementById('e-any-combined').textContent    = exp(eAnyCombined);
+
+      // ── Token cost ──
+      const tokenCost     = boxes * BOX_COST;
+      const bundlesNeeded = tokenCost > 0 ? Math.ceil(tokenCost / LARGE_BUNDLE) : 0;
+      const robuxCost     = bundlesNeeded * BUNDLE_ROBUX;
+
+      document.getElementById('stat-tokencost').textContent = tokenCost > 0 ? tokenCost.toLocaleString() : '0';
+      document.getElementById('stat-bundles').textContent   = bundlesNeeded;
+      document.getElementById('stat-robux').textContent     = robuxCost > 0 ? robuxCost.toLocaleString() : '0';
+    }
+
+    ['sl-duration', 'sl-boxes'].forEach(id => {
+      document.getElementById(id).addEventListener('input', update);
+    });
+
+    update();
+  </script>
 </body>
 </html>
