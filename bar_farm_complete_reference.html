@@ -1,0 +1,526 @@
+
+<h2 class="sr-only">Build-A-Ring Farm: Complete Mechanics Reference — Eggs, Pets, Boss Drops, Events, Compost, Floor Multipliers</h2>
+<style>
+:root { --gap: 12px; }
+.tabs { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:1.5rem; padding-top:1rem; }
+.tab { padding:6px 16px; font-size:13px; font-weight:500; border-radius:var(--border-radius-md); border:0.5px solid var(--color-border-tertiary); cursor:pointer; background:var(--color-background-secondary); color:var(--color-text-secondary); transition:background .15s, color .15s; }
+.tab.active { background:var(--color-background-primary); border-color:var(--color-border-primary); color:var(--color-text-primary); }
+.panel { display:none; } .panel.active { display:block; }
+.section-label { font-size:11px; font-weight:500; color:var(--color-text-secondary); text-transform:uppercase; letter-spacing:.06em; margin:1.5rem 0 .5rem; }
+.card { background:var(--color-background-primary); border:0.5px solid var(--color-border-tertiary); border-radius:var(--border-radius-lg); padding:1rem 1.25rem; margin-bottom:var(--gap); }
+.card-title { font-size:14px; font-weight:500; margin-bottom:.75rem; }
+.badge { display:inline-block; font-size:11px; font-weight:500; padding:2px 8px; border-radius:var(--border-radius-md); }
+.b-common { background:#C0DD97; color:#3B6D11; }
+.b-uncommon { background:#B5D4F4; color:#185FA5; }
+.b-rare { background:#CCC; color:#444; }
+.b-epic { background:#AFA9EC; color:#3C3489; }
+.b-legendary { background:#FAC775; color:#633806; }
+.b-secret { background:#F5C4B3; color:#993C1D; }
+.b-prismatic { background:#F4C0D1; color:#993556; }
+.b-divine { background:#9FE1CB; color:#0F6E56; }
+.b-exotic { background:#E24B4A; color:#fff; }
+.b-transcended { background:#2C2C2A; color:#D3D1C7; }
+.b-event { background:#FAC775; color:#633806; }
+tbl { width:100%; }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th { text-align:left; font-size:11px; font-weight:500; color:var(--color-text-secondary); border-bottom:0.5px solid var(--color-border-tertiary); padding:4px 8px; }
+td { padding:5px 8px; border-bottom:0.5px solid var(--color-border-tertiary); vertical-align:middle; }
+tr:last-child td { border-bottom:none; }
+.num { font-variant-numeric:tabular-nums; }
+.highlight-row td { background:var(--color-background-secondary); }
+.grid2 { display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:var(--gap); }
+.grid3 { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:var(--gap); }
+.metric { background:var(--color-background-secondary); border-radius:var(--border-radius-md); padding:.75rem 1rem; }
+.metric-label { font-size:12px; color:var(--color-text-secondary); margin-bottom:2px; }
+.metric-val { font-size:20px; font-weight:500; }
+.floor-bar { height:8px; border-radius:4px; background:var(--color-border-tertiary); margin:4px 0; overflow:hidden; }
+.floor-fill { height:100%; border-radius:4px; }
+.note { font-size:12px; color:var(--color-text-secondary); margin-top:.5rem; }
+.ring-row { display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:0.5px solid var(--color-border-tertiary); }
+.ring-row:last-child { border-bottom:none; }
+.ring-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.ring-label { font-size:13px; font-weight:500; flex:1; }
+.ring-req { font-size:12px; color:var(--color-text-secondary); }
+.ring-bonus { font-size:13px; font-weight:500; color:var(--color-text-success); }
+.winner-badge { display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:500; padding:3px 10px; border-radius:var(--border-radius-md); background:var(--color-background-success); color:var(--color-text-success); margin-left:8px; }
+.event-label { font-size:11px; color:var(--color-text-secondary); }
+select { width:100%; font-size:13px; padding:6px 10px; }
+</style>
+
+<div class="tabs">
+  <div class="tab active" onclick="showPanel('eggs')">Eggs &amp; Pets</div>
+  <div class="tab" onclick="showPanel('events')">Bosses &amp; Events</div>
+  <div class="tab" onclick="showPanel('compost')">Compost</div>
+  <div class="tab" onclick="showPanel('floors')">Floor System</div>
+</div>
+
+<div id="eggs" class="panel active">
+  <div class="section-label">Egg Restock Chances (out of 100 total weight)</div>
+  <div class="grid3">
+    <div class="metric"><div class="metric-label">Common Egg</div><div class="metric-val">62%</div></div>
+    <div class="metric"><div class="metric-label">Rare Egg</div><div class="metric-val">31%</div></div>
+    <div class="metric"><div class="metric-label">Epic Egg</div><div class="metric-val">7%</div></div>
+  </div>
+  <p class="note" style="margin-top:.75rem">Dinosaur Egg is an event-only egg — no restock weight. Its probabilities below assume you already have one to open.</p>
+
+  <div class="section-label">Pet Weights Per Egg (weights sum to 100)</div>
+  <div style="margin-bottom:.75rem;">
+    <label style="font-size:13px; color:var(--color-text-secondary); margin-right:8px;">Select egg:</label>
+    <select id="eggSelect" onchange="renderPetTable()">
+      <option value="common">Common Egg (62% restock)</option>
+      <option value="rare">Rare Egg (31% restock)</option>
+      <option value="epic">Epic Egg (7% restock)</option>
+      <option value="dino">Dinosaur Egg (event only)</option>
+    </select>
+  </div>
+
+  <div class="card" id="petTableCard">
+    <div class="card-title" id="petTableTitle">Common Egg — Pet Probabilities</div>
+    <table id="petTable"></table>
+    <p class="note" id="petNote"></p>
+  </div>
+
+  <div class="section-label">Size Variant Chances (same for all eggs)</div>
+  <div class="card">
+    <table>
+      <thead><tr><th>Size</th><th>Weight</th><th>Chance</th><th>Multiplier Range</th></tr></thead>
+      <tbody>
+        <tr><td>Regular</td><td class="num">63</td><td class="num">63%</td><td style="color:var(--color-text-secondary); font-size:12px;">Lowest multiplier tier</td></tr>
+        <tr><td>Big</td><td class="num">32</td><td class="num">32%</td><td style="color:var(--color-text-secondary); font-size:12px;">Mid multiplier tier</td></tr>
+        <tr><td>Giant</td><td class="num">5</td><td class="num">5%</td><td style="color:var(--color-text-secondary); font-size:12px;">Highest multiplier tier</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section-label">Complete Pet Multiplier Reference (by rarity)</div>
+  <div class="grid2" id="petMultGrid"></div>
+</div>
+
+<div id="events" class="panel">
+  <div class="section-label">Event Rotation Schedule (fixed per hour)</div>
+  <div class="card">
+    <table>
+      <thead><tr><th>Minute of Hour</th><th>Event</th><th>Duration</th></tr></thead>
+      <tbody>
+        <tr><td>:00</td><td>🌱 Plant Rush</td><td>15 min</td></tr>
+        <tr><td>:15</td><td>🚚 Trucker</td><td>10 min</td></tr>
+        <tr><td>:30</td><td>🐝 Queen Bee</td><td>5 min</td></tr>
+        <tr><td>:45</td><td>👽 Alien Invasion</td><td>4 min</td></tr>
+      </tbody>
+    </table>
+    <p class="note">Cycle repeats every 15 min. Grace window = 5 s.</p>
+  </div>
+
+  <div class="section-label">Queen Bee — Token Reward Drops</div>
+  <div class="card">
+    <div class="card-title">Total weight = 100 (normalised below)</div>
+    <table>
+      <thead><tr><th>Reward</th><th>Weight</th><th>Chance</th></tr></thead>
+      <tbody>
+        <tr><td>2 Min Time Skip</td><td class="num">58</td><td class="num">58.0%</td></tr>
+        <tr><td>Honeysuckle <span class="badge b-epic">Epic plant</span></td><td class="num">35.25</td><td class="num">35.25%</td></tr>
+        <tr><td>15 Min Time Skip</td><td class="num">5</td><td class="num">5.0%</td></tr>
+        <tr><td>Queen Bee Fertilizer</td><td class="num">1</td><td class="num">1.0%</td></tr>
+        <tr class="highlight-row"><td>Queens Blossom <span class="badge b-transcended">Transcended</span></td><td class="num">0.75</td><td class="num">0.75%</td></tr>
+      </tbody>
+    </table>
+    <p class="note">You collect Honeycombs (5 per token). Each token roll uses these weights. You get 3–6 rolls per event depending on player count.</p>
+  </div>
+
+  <div class="section-label">Alien Invasion — Drop Weights</div>
+  <div class="card">
+    <div class="card-title">Total weight = 100 — 3–6 drops per event</div>
+    <table>
+      <thead><tr><th>Drop</th><th>Weight</th><th>Chance</th></tr></thead>
+      <tbody>
+        <tr><td>2 Min Time Skip</td><td class="num">50</td><td class="num">50.0%</td></tr>
+        <tr><td>Martian Melon <span class="badge b-epic">Epic plant</span></td><td class="num">35</td><td class="num">35.0%</td></tr>
+        <tr><td>5 Min Time Skip</td><td class="num">10</td><td class="num">10.0%</td></tr>
+        <tr class="highlight-row"><td>Galaxy Hibiscus <span class="badge b-prismatic">Prismatic</span></td><td class="num">5</td><td class="num">5.0%</td></tr>
+      </tbody>
+    </table>
+    <p class="note">UFO also applies the Alien mutation (10% chance) to your plants during scans.</p>
+  </div>
+
+  <div class="section-label">Trucker — Rating → Reward Tiers</div>
+  <div class="card">
+    <div class="card-title">Farm CPM (coins per minute) determines rating</div>
+    <table>
+      <thead><tr><th>Rating</th><th>Min CPM</th><th>Roll Chances: lower / same / better</th></tr></thead>
+      <tbody>
+        <tr><td><span style="font-weight:500">F</span></td><td class="num">0</td><td class="num">0% / 95% / 5%</td></tr>
+        <tr><td><span style="font-weight:500">E</span></td><td class="num">100 K</td><td class="num">10% / 80% / 10%</td></tr>
+        <tr><td><span style="font-weight:500">D</span></td><td class="num">50 M</td><td class="num">25% / 65% / 10%</td></tr>
+        <tr><td><span style="font-weight:500">C</span></td><td class="num">500 M</td><td class="num">20% / 70% / 10%</td></tr>
+        <tr><td><span style="font-weight:500">B</span></td><td class="num">10 B</td><td class="num">10% / 75% / 15%</td></tr>
+        <tr><td><span style="font-weight:500">A</span></td><td class="num">250 B</td><td class="num">0% / 90% / 10%</td></tr>
+        <tr><td><span style="font-weight:500">S</span></td><td class="num">100 T</td><td class="num">0% / 90% / 10%</td></tr>
+        <tr class="highlight-row"><td><span style="font-weight:500">S+</span></td><td class="num">1 Q</td><td class="num">0% / 100% / 0% (locked at best)</td></tr>
+      </tbody>
+    </table>
+    <p class="note">Reward pool escalates: F = Carrot/1 min skip → S = Glowshroom / Radioactive Spray / Trucker Spray → S+ = Diamond Blossom / Golden Apple / Rainbow Spray / Trucker Spray ×2 / Truckers Delight ×2. S+ rewards include Truckers Delight (Exotic) and Rainbow Spray.</p>
+  </div>
+
+  <div class="section-label">Event-Only Plants (from all events)</div>
+  <div class="card">
+    <table>
+      <thead><tr><th>Plant</th><th>Rarity</th><th>Value</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr><td>Honeysuckle</td><td><span class="badge b-epic">Epic</span></td><td class="num">615 K</td><td>Queen Bee roll</td></tr>
+        <tr><td>Queens Blossom</td><td><span class="badge b-transcended">Transcended</span></td><td class="num">400 T</td><td>Queen Bee roll</td></tr>
+        <tr><td>Martian Melon</td><td><span class="badge b-epic">Epic</span></td><td class="num">700 K</td><td>Alien drop</td></tr>
+        <tr><td>Galaxy Hibiscus</td><td><span class="badge b-prismatic">Prismatic</span></td><td class="num">1.55 B</td><td>Alien drop</td></tr>
+        <tr><td>Rush Root</td><td><span class="badge b-prismatic">Prismatic</span></td><td class="num">850 M</td><td>Plant Rush</td></tr>
+        <tr><td>Garden Golem</td><td><span class="badge b-transcended">Transcended</span></td><td class="num">425 T</td><td>Plant Rush</td></tr>
+        <tr><td>Truckers Delight</td><td><span class="badge b-exotic">Exotic</span></td><td class="num">1.1 T</td><td>Trucker S/S+</td></tr>
+        <tr><td>Monsoon Crown</td><td><span class="badge b-secret">Secret</span></td><td class="num">65 M</td><td>Rollable 0.0005%</td></tr>
+        <tr><td>Frostbell</td><td><span class="badge b-prismatic">Prismatic</span></td><td class="num">1.75 B</td><td>Rollable 0.0009%</td></tr>
+        <tr><td>Amber Wisp</td><td><span class="badge b-divine">Divine</span></td><td class="num">12.5 B</td><td>Rollable 0.0001%</td></tr>
+        <tr><td>Darkmatter Bramble</td><td><span class="badge b-exotic">Exotic</span></td><td class="num">1 T</td><td>Rollable 0.00015%</td></tr>
+        <tr><td>Uranium Reed</td><td><span class="badge b-exotic">Exotic</span></td><td class="num">10 T</td><td>Rollable 0.00009%</td></tr>
+        <tr class="highlight-row"><td>Mooncap</td><td><span class="badge b-transcended">Transcended</span></td><td class="num">175 T</td><td>Rollable 7.5e-11%</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div id="compost" class="panel">
+  <div class="section-label">Machine Unlock Levels &amp; Effective Value Caps</div>
+  <div class="grid3">
+    <div class="metric"><div class="metric-label">Floor 2 Composter</div><div class="metric-val" style="font-size:16px;">Level 3 · cap 300 B</div></div>
+    <div class="metric"><div class="metric-label">Floor 3 Composter</div><div class="metric-val" style="font-size:16px;">Level 6 · cap 25 T</div></div>
+    <div class="metric"><div class="metric-label">Floor 4 Composter</div><div class="metric-val" style="font-size:16px;">Level 9 · cap 25 Q</div></div>
+  </div>
+  <p class="note" style="margin-top:.75rem">Compost cooldown: 5 minutes between uses. Bundle amount = floor(effective_value × ValuePercent / item_cost). Each bundle type sets quantity range.</p>
+
+  <div class="section-label">Bundle Types (determine item quantity)</div>
+  <div class="card">
+    <table>
+      <thead><tr><th>Bundle</th><th>Value %</th><th>Min qty</th><th>Max qty</th></tr></thead>
+      <tbody>
+        <tr><td>Small</td><td class="num">1.0%</td><td class="num">1</td><td class="num">2</td></tr>
+        <tr><td>Bundle</td><td class="num">1.5%</td><td class="num">2</td><td class="num">2</td></tr>
+        <tr><td>Large</td><td class="num">2.0%</td><td class="num">2</td><td class="num">3</td></tr>
+        <tr><td>VeryLarge</td><td class="num">2.5%</td><td class="num">3</td><td class="num">4</td></tr>
+        <tr><td>Huge</td><td class="num">3.0%</td><td class="num">3</td><td class="num">5</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section-label">Compost Tiers &amp; Reward Pools</div>
+  <div style="margin-bottom:.75rem;">
+    <select id="compostFloor" onchange="renderCompost()">
+      <option value="2">Floor 2 Composter</option>
+      <option value="3">Floor 3 Composter</option>
+      <option value="4">Floor 4 Composter</option>
+    </select>
+  </div>
+  <div id="compostContent"></div>
+</div>
+
+<div id="floors" class="panel">
+  <div class="section-label">How the ring value system works</div>
+  <div class="card">
+    <p style="font-size:13px; color:var(--color-text-secondary); margin:0 0 .5rem">Each floor (2–4) has 3 concentric rings of farm plots. When the total sell value of crops planted in a ring meets its threshold, that ring activates and adds a permanent income % bonus. Bonuses are additive and stack across all active rings on all floors.</p>
+    <p style="font-size:13px; color:var(--color-text-secondary); margin:0">Floors 3 and 4 also have <strong style="color:var(--color-text-primary)">Soil Quality</strong> upgrades (up to 15 levels), each adding +3.57% income.</p>
+  </div>
+
+  <div id="floorCards"></div>
+
+  <div class="section-label">Best floor — multiplier summary</div>
+  <div class="card">
+    <table>
+      <thead><tr><th>Floor</th><th>Unlock</th><th>Max ring bonus</th><th>Max soil bonus</th><th>Max total multiplier</th></tr></thead>
+      <tbody>
+        <tr><td>Floor 1</td><td>Level 1</td><td class="num">0%</td><td class="num">—</td><td class="num"><strong>1.00×</strong></td></tr>
+        <tr><td>Floor 2</td><td>Level 4</td><td class="num">+35%</td><td class="num">—</td><td class="num"><strong>1.35×</strong></td></tr>
+        <tr><td>Floor 3</td><td>Level 7</td><td class="num">+45%</td><td class="num">+53.57%</td><td class="num"><strong>1.99×</strong></td></tr>
+        <tr class="highlight-row"><td>Floor 4 <span class="winner-badge"><i class="ti ti-trophy" aria-hidden="true"></i> best</span></td><td>Level 10</td><td class="num">+55%</td><td class="num">+53.57%</td><td class="num"><strong>2.09×</strong></td></tr>
+      </tbody>
+    </table>
+    <p class="note">All income bonuses are additive. Floor 4 requires extremely high plant values per ring ($5 Q – $20.5 Q) but gives the highest possible income multiplier of 2.09×. Soil Quality (Floors 3 &amp; 4): 15 levels × 3.571% = 53.57% added income. The full 2.09× requires level 10 rank, all 3 Floor 4 rings filled, and 15 Soil Quality upgrades.</p>
+  </div>
+</div>
+
+<script>
+const EGG_DATA = {
+  common: {
+    label: "Common Egg (62% restock)",
+    restock: 62,
+    pets: [
+      {name:"Golden Retriever",w:52,rarity:"Common"},
+      {name:"Capybara",w:30,rarity:"Common"},
+      {name:"Llama",w:15,rarity:"Uncommon"},
+      {name:"Elephant",w:2.5,rarity:"Uncommon"},
+      {name:"Gorilla",w:0.5,rarity:"Rare"}
+    ]
+  },
+  rare: {
+    label: "Rare Egg (31% restock)",
+    restock: 31,
+    pets: [
+      {name:"Elephant",w:52,rarity:"Uncommon"},
+      {name:"Gorilla",w:30,rarity:"Rare"},
+      {name:"Crocodile",w:15,rarity:"Rare"},
+      {name:"Lion",w:2.5,rarity:"Epic"},
+      {name:"Polar Bear",w:0.5,rarity:"Epic"}
+    ]
+  },
+  epic: {
+    label: "Epic Egg (7% restock)",
+    restock: 7,
+    pets: [
+      {name:"Crocodile",w:52,rarity:"Rare"},
+      {name:"Lion",w:30,rarity:"Epic"},
+      {name:"Polar Bear",w:15,rarity:"Epic"},
+      {name:"Mammoth",w:2.5,rarity:"Legendary"},
+      {name:"Hydra",w:0.5,rarity:"Secret"}
+    ]
+  },
+  dino: {
+    label: "Dinosaur Egg (event only — per-open chances)",
+    restock: null,
+    pets: [
+      {name:"Gallimimus",w:52,rarity:"Legendary"},
+      {name:"Triceratops",w:30,rarity:"Secret"},
+      {name:"Spinosaurus",w:15,rarity:"Secret"},
+      {name:"Velociraptor",w:2.5,rarity:"Prismatic"},
+      {name:"T-Rex",w:0.5,rarity:"Divine"}
+    ]
+  }
+};
+const SIZES = [{name:"Regular",w:63},{name:"Big",w:32},{name:"Giant",w:5}];
+const RARITY_MAP = {Common:"common",Uncommon:"uncommon",Rare:"rare",Epic:"epic",Legendary:"legendary",Secret:"secret",Prismatic:"prismatic",Divine:"divine",Exotic:"exotic",Transcended:"transcended"};
+
+const ALL_PETS = [
+  {name:"Golden Retriever",rarity:"Common",mults:{Regular:[1.10,1.22],Big:[1.22,1.35],Giant:[1.35,1.50]}},
+  {name:"Capybara",rarity:"Common",mults:{Regular:[1.10,1.22],Big:[1.22,1.35],Giant:[1.35,1.50]}},
+  {name:"Llama",rarity:"Uncommon",mults:{Regular:[1.35,1.55],Big:[1.55,1.80],Giant:[1.80,2.10]}},
+  {name:"Elephant",rarity:"Uncommon",mults:{Regular:[1.40,1.60],Big:[1.60,1.90],Giant:[1.90,2.25]}},
+  {name:"Gorilla",rarity:"Rare",mults:{Regular:[2.00,2.30],Big:[2.30,2.65],Giant:[2.65,3.05]}},
+  {name:"Crocodile",rarity:"Rare",mults:{Regular:[2.15,2.45],Big:[2.45,2.85],Giant:[2.85,3.30]}},
+  {name:"Lion",rarity:"Epic",mults:{Regular:[3.10,3.50],Big:[3.50,4.00],Giant:[4.00,4.60]}},
+  {name:"Polar Bear",rarity:"Epic",mults:{Regular:[3.35,3.80],Big:[3.80,4.35],Giant:[4.35,5.00]}},
+  {name:"Mammoth",rarity:"Legendary",mults:{Regular:[5.50,6.20],Big:[6.20,7.00],Giant:[7.00,8.00]}},
+  {name:"Hydra",rarity:"Secret",mults:{Regular:[8.50,9.50],Big:[9.50,10.75],Giant:[10.75,12.00]}},
+  {name:"Triceratops",rarity:"Secret",event:true,mults:{Regular:[5.20,5.80],Big:[5.80,6.50],Giant:[6.50,7.30]}},
+  {name:"Spinosaurus",rarity:"Secret",event:true,mults:{Regular:[6.50,7.30],Big:[7.30,8.20],Giant:[8.20,9.20]}},
+  {name:"Gallimimus",rarity:"Legendary",event:true,mults:{Regular:[4.50,5.00],Big:[5.00,5.60],Giant:[5.60,6.30]}},
+  {name:"Velociraptor",rarity:"Prismatic",event:true,mults:{Regular:[8.50,9.50],Big:[9.50,10.75],Giant:[10.75,12.00]}},
+  {name:"T-Rex",rarity:"Divine",event:true,mults:{Regular:[12.00,13.00],Big:[13.00,14.25],Giant:[14.25,15.50]}},
+  {name:"Kitsune",rarity:"Prismatic",event:true,mults:{Regular:[6,6],Big:[6,6],Giant:[6,6]}},
+  {name:"Starfall Griffin",rarity:"Divine",event:true,mults:{Regular:[11.00,12.24],Big:[12.25,13.74],Giant:[13.75,15.25]}}
+];
+
+function fmt(n, d=4) {
+  if (n >= 0.01) return n.toFixed(2) + '%';
+  if (n >= 0.001) return n.toFixed(3) + '%';
+  return n.toFixed(d) + '%';
+}
+
+function renderPetTable() {
+  const key = document.getElementById('eggSelect').value;
+  const egg = EGG_DATA[key];
+  document.getElementById('petTableTitle').textContent = egg.label;
+  const body = egg.pets.map(p => {
+    const rows = SIZES.map(s => {
+      let combined;
+      if (egg.restock) {
+        combined = (egg.restock / 100) * (p.w / 100) * (s.w / 100) * 100;
+      } else {
+        combined = (p.w / 100) * (s.w / 100) * 100;
+      }
+      const cls = RARITY_MAP[p.rarity] || 'common';
+      return `<tr>
+        <td>${p.name} <span class="badge b-${cls}">${p.rarity}</span></td>
+        <td>${s.name}</td>
+        <td class="num">${p.w}%</td>
+        <td class="num">${s.w}%</td>
+        <td class="num"><strong>${fmt(combined)}</strong></td>
+      </tr>`;
+    }).join('');
+    return rows;
+  }).join('');
+  document.getElementById('petTable').innerHTML =
+    `<thead><tr><th>Pet</th><th>Size</th><th>Pet weight</th><th>Size chance</th><th>Combined ${egg.restock ? '(restock×pet×size)' : '(pet×size)'}</th></tr></thead><tbody>${body}</tbody>`;
+  document.getElementById('petNote').textContent = egg.restock
+    ? `"Combined" = ${egg.restock}% egg restock × pet weight × size chance. This represents your overall odds of getting that specific pet+size variant on any given restock roll.`
+    : `Event egg — no restock. "Combined" = pet weight × size chance. Represents odds per egg opened.`;
+}
+
+function renderPetMultGrid() {
+  const groups = {};
+  ALL_PETS.forEach(p => {
+    if (!groups[p.rarity]) groups[p.rarity] = [];
+    groups[p.rarity].push(p);
+  });
+  const order = ['Common','Uncommon','Rare','Epic','Legendary','Secret','Prismatic','Divine'];
+  let html = '';
+  order.forEach(r => {
+    const pets = groups[r] || [];
+    if (!pets.length) return;
+    pets.forEach(p => {
+      const cls = RARITY_MAP[r] || 'common';
+      const evtBadge = p.event ? `<span class="badge b-event" style="margin-left:4px">event</span>` : '';
+      const mR = p.mults.Regular, mB = p.mults.Big, mG = p.mults.Giant;
+      const fixed = mR[0]===mR[1];
+      html += `<div class="card">
+        <div class="card-title">${p.name} <span class="badge b-${cls}">${r}</span>${evtBadge}</div>
+        <table><thead><tr><th>Size</th><th>Multiplier range</th></tr></thead><tbody>
+          <tr><td>Regular</td><td class="num">${fixed ? mR[0]+'×' : mR[0]+'× – '+mR[1]+'×'}</td></tr>
+          <tr><td>Big</td><td class="num">${p.mults.Big[0]===p.mults.Big[1] ? p.mults.Big[0]+'×' : p.mults.Big[0]+'× – '+p.mults.Big[1]+'×'}</td></tr>
+          <tr><td>Giant</td><td class="num">${p.mults.Giant[0]===p.mults.Giant[1] ? p.mults.Giant[0]+'×' : p.mults.Giant[0]+'× – '+p.mults.Giant[1]+'×'}</td></tr>
+        </tbody></table>
+      </div>`;
+    });
+  });
+  document.getElementById('petMultGrid').innerHTML = html;
+}
+
+const COMPOST_DATA = {
+  2: {
+    tiers: [
+      {name:'Rich', min:'5 B', pool:{
+        utility:[{item:'Strong Fertilizer',bundle:'Bundle',w:55},{item:'Super Fertilizer',bundle:'Small',w:25},{item:'Super Pet Treat',bundle:'Bundle',w:20}],
+        premium:[{item:'Super Fertilizer',bundle:'Bundle',w:65},{item:'Super Pet Treat',bundle:'Bundle',w:20},{item:'Void Spray',bundle:'Bundle',w:10},{item:'Compost Hydra seed',bundle:'-',w:4},{item:'Radioactive Spray',bundle:'-',w:1}]
+      }},
+      {name:'Prime', min:'50 B', pool:{
+        utility:[{item:'Strong Fertilizer',bundle:'Large',w:40},{item:'Super Fertilizer',bundle:'Bundle',w:35},{item:'Super Pet Treat',bundle:'Bundle',w:25}],
+        premium:[{item:'Strong Fertilizer',bundle:'Large',w:60},{item:'Super Pet Treat',bundle:'Bundle',w:20},{item:'Void Spray',bundle:'-',w:10},{item:'Radioactive Spray',bundle:'-',w:5},{item:'Compost Hydra seed',bundle:'-',w:4},{item:'Rainbow Spray',bundle:'-',w:1}]
+      }},
+      {name:'Overgrown', min:'200 B', pool:{
+        utility:[{item:'Super Fertilizer',bundle:'Large',w:40},{item:'Strong Fertilizer',bundle:'Large',w:30},{item:'Super Pet Treat',bundle:'Large',w:30}],
+        premium:[{item:'Super Fertilizer',bundle:'Large',w:55},{item:'Super Pet Treat',bundle:'Large',w:20},{item:'Void Spray',bundle:'-',w:10},{item:'Radioactive Spray',bundle:'-',w:7},{item:'Compost Hydra seed',bundle:'-',w:7},{item:'Rainbow Spray',bundle:'-',w:1}]
+      }}
+    ]
+  },
+  3: {
+    tiers: [
+      {name:'Rich', min:'500 B', pool:{
+        utility:[{item:'Super Fertilizer',bundle:'Bundle',w:50},{item:'Super Pet Treat',bundle:'Bundle',w:35},{item:'Strong Fertilizer',bundle:'Large',w:15}],
+        premium:[{item:'Super Fertilizer',bundle:'Large',w:60},{item:'Super Pet Treat',bundle:'Large',w:25},{item:'Radioactive Spray',bundle:'-',w:8},{item:'Compost Hydra seed',bundle:'-',w:6},{item:'Rainbow Spray',bundle:'-',w:1}]
+      }},
+      {name:'Prime', min:'5 T', pool:{
+        utility:[{item:'Super Fertilizer',bundle:'Large',w:50},{item:'Super Pet Treat',bundle:'Large',w:40},{item:'Strong Fertilizer',bundle:'Large',w:10}],
+        premium:[{item:'Super Fertilizer',bundle:'Huge',w:55},{item:'Super Pet Treat',bundle:'Huge',w:25},{item:'Radioactive Spray',bundle:'-',w:12},{item:'Compost Hydra seed',bundle:'-',w:7},{item:'Rainbow Spray',bundle:'-',w:1}]
+      }},
+      {name:'Overgrown', min:'25 T', pool:{
+        utility:[{item:'Super Fertilizer',bundle:'Huge',w:50},{item:'Super Pet Treat',bundle:'Huge',w:40},{item:'Strong Fertilizer',bundle:'Large',w:10}],
+        premium:[{item:'Super Fertilizer',bundle:'Huge',w:50},{item:'Super Pet Treat',bundle:'Huge',w:25},{item:'Radioactive Spray',bundle:'-',w:10},{item:'Compost Hydra seed',bundle:'-',w:8},{item:'Garden Devourer seed',bundle:'-',w:4},{item:'Rainbow Spray',bundle:'-',w:2.5},{item:'Cosmic Spray',bundle:'-',w:0.5}]
+      }}
+    ]
+  },
+  4: {
+    tiers: [
+      {name:'Rich', min:'500 T', pool:{
+        utility:[{item:'Super Fertilizer',bundle:'Huge',w:55},{item:'Super Pet Treat',bundle:'Huge',w:35},{item:'Strong Fertilizer',bundle:'Large',w:10}],
+        premium:[{item:'Radioactive Spray',bundle:'-',w:40},{item:'Rainbow Spray',bundle:'-',w:25},{item:'Garden Devourer seed',bundle:'-',w:25},{item:'Cosmic Spray',bundle:'-',w:5},{item:'Muck Monarch seed',bundle:'-',w:5}]
+      }},
+      {name:'Prime', min:'5 Q', pool:{
+        utility:[{item:'Super Fertilizer',bundle:'Huge',w:50},{item:'Super Pet Treat',bundle:'Huge',w:40},{item:'Strong Fertilizer',bundle:'Large',w:10}],
+        premium:[{item:'Radioactive Spray',bundle:'-',w:35},{item:'Rainbow Spray',bundle:'-',w:25},{item:'Garden Devourer seed',bundle:'-',w:25},{item:'Cosmic Spray',bundle:'-',w:7},{item:'Muck Monarch seed',bundle:'-',w:8}]
+      }},
+      {name:'Overgrown', min:'25 Q', pool:{
+        utility:[{item:'Super Fertilizer',bundle:'Huge',w:45},{item:'Super Pet Treat',bundle:'Huge',w:45},{item:'Strong Fertilizer',bundle:'Large',w:10}],
+        premium:[{item:'Radioactive Spray',bundle:'-',w:30},{item:'Rainbow Spray',bundle:'-',w:25},{item:'Garden Devourer seed',bundle:'-',w:20},{item:'Cosmic Spray',bundle:'-',w:10},{item:'Muck Monarch seed',bundle:'-',w:15}]
+      }}
+    ]
+  }
+};
+
+function renderCompost() {
+  const fl = parseInt(document.getElementById('compostFloor').value);
+  const data = COMPOST_DATA[fl];
+  let html = '';
+  data.tiers.forEach(tier => {
+    const totalU = tier.pool.utility.reduce((s,e)=>s+e.w,0);
+    const totalP = tier.pool.premium.reduce((s,e)=>s+e.w,0);
+    html += `<div class="card" style="margin-bottom:var(--gap)">
+      <div class="card-title">${tier.name} tier — min value: ${tier.min}</div>
+      <div class="grid2">
+        <div>
+          <div style="font-size:12px; font-weight:500; color:var(--color-text-secondary); margin-bottom:6px">Utility pool (free roll)</div>
+          <table><thead><tr><th>Item</th><th>Bundle</th><th>Weight</th><th>Chance</th></tr></thead><tbody>
+          ${tier.pool.utility.map(e=>`<tr><td>${e.item}</td><td>${e.bundle}</td><td class="num">${e.w}</td><td class="num">${(e.w/totalU*100).toFixed(1)}%</td></tr>`).join('')}
+          </tbody></table>
+        </div>
+        <div>
+          <div style="font-size:12px; font-weight:500; color:var(--color-text-secondary); margin-bottom:6px">Premium pool (paid/Robux roll)</div>
+          <table><thead><tr><th>Item</th><th>Bundle</th><th>Weight</th><th>Chance</th></tr></thead><tbody>
+          ${tier.pool.premium.map(e=>`<tr><td>${e.item}</td><td>${e.bundle}</td><td class="num">${e.w}</td><td class="num">${(e.w/totalP*100).toFixed(1)}%</td></tr>`).join('')}
+          </tbody></table>
+        </div>
+      </div>
+    </div>`;
+  });
+  document.getElementById('compostContent').innerHTML = html;
+}
+
+const FLOOR_CFG = [
+  null,
+  {floor:2, unlockLvl:4, rings:[
+    {name:'Inner',req:'500 B',reqN:500e9,bonus:8},
+    {name:'Middle',req:'1.5 T',reqN:1.5e12,bonus:12},
+    {name:'Outer',req:'5 T',reqN:5e12,bonus:15}
+  ], soilQ:null},
+  {floor:3, unlockLvl:7, rings:[
+    {name:'Inner',req:'100 T',reqN:100e12,bonus:10},
+    {name:'Middle',req:'500 T',reqN:500e12,bonus:15},
+    {name:'Outer',req:'2 Q',reqN:2e15,bonus:20}
+  ], soilQ:{maxLvl:15,perLvl:3.571}},
+  {floor:4, unlockLvl:10, rings:[
+    {name:'Inner (ring 1)',req:'20.5 Q',reqN:2.05e16,bonus:12},
+    {name:'Middle (ring 2)',req:'5 Q',reqN:5e15,bonus:18},
+    {name:'Outer (ring 3)',req:'10 Q',reqN:1e16,bonus:25}
+  ], soilQ:{maxLvl:15,perLvl:3.571}}
+];
+const DOT_COLORS = ['#378ADD','#1D9E75','#D85A30'];
+
+function renderFloorCards() {
+  let html = '';
+  [1,2,3].forEach(idx => {
+    const f = FLOOR_CFG[idx];
+    const ringTotal = f.rings.reduce((s,r)=>s+r.bonus,0);
+    const soilTotal = f.soilQ ? (f.soilQ.maxLvl * f.soilQ.perLvl).toFixed(2) : 0;
+    const grandTotal = ringTotal + parseFloat(soilTotal);
+    html += `<div class="section-label">Floor ${f.floor} — Unlocks at Level ${f.unlockLvl}</div>
+    <div class="card">
+      <div class="grid2">
+        <div>
+          <div style="font-size:12px; font-weight:500; color:var(--color-text-secondary); margin-bottom:8px">Ring value thresholds</div>
+          ${f.rings.map((r,i)=>`
+            <div class="ring-row">
+              <div class="ring-dot" style="background:${DOT_COLORS[i]}"></div>
+              <div class="ring-label">${r.name} ring</div>
+              <div class="ring-req">${r.req} plant value</div>
+              <div class="ring-bonus">+${r.bonus}%</div>
+            </div>`).join('')}
+          <div style="font-size:12px; color:var(--color-text-secondary); margin-top:8px;">All rings active → <strong style="color:var(--color-text-primary)">+${ringTotal}% income</strong></div>
+        </div>
+        <div>
+          <div style="font-size:12px; font-weight:500; color:var(--color-text-secondary); margin-bottom:8px">Soil Quality ${f.soilQ ? `(${f.soilQ.maxLvl} levels × ${f.soilQ.perLvl.toFixed(2)}%)` : '(not available)'}</div>
+          ${f.soilQ ? `<div style="font-size:13px; margin-bottom:8px">Max soil bonus: <strong>+${soilTotal}%</strong></div>` : `<div style="font-size:13px; color:var(--color-text-secondary)">Soil Quality unlocks on Floor 3+</div>`}
+          <div style="margin-top:1rem; padding-top:.75rem; border-top:0.5px solid var(--color-border-tertiary);">
+            <div style="font-size:12px; color:var(--color-text-secondary); margin-bottom:4px">Max total multiplier (all bonuses)</div>
+            <div style="font-size:22px; font-weight:500;">${(1 + grandTotal/100).toFixed(2)}×</div>
+            <div style="font-size:12px; color:var(--color-text-secondary)">+${grandTotal.toFixed(2)}% income total</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  });
+  document.getElementById('floorCards').innerHTML = html;
+}
+
+function showPanel(id) {
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+renderPetTable();
+renderPetMultGrid();
+renderCompost();
+renderFloorCards();
+</script>
